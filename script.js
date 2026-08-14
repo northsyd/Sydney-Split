@@ -1,4 +1,4 @@
-const SUPABASE_URL = "https://sznrntmaboezpwtiikfx.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://sznrntmaboezpwtiikfx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_1N2eQRZ3sP8gQefc7BLF-g_QtBxm01e";
 
 const SYDNEY_BOUNDS = [
