@@ -4,12 +4,10 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_1N2eQRZ3sP8gQefc7BLF-g_QtBxm01e";
 
-
 const SYDNEY_BOUNDS = [
   [-34.25, 150.55],
   [-33.35, 151.45]
 ];
-
 
 let map = null;
 let resultMap = null;
@@ -23,9 +21,11 @@ let boundaryLayers = [];
 let myBoundaryLayer = null;
 let myPointLayers = [];
 
-let currentView = "all";
-
 let submissions = [];
+
+let currentView = "all";
+let currentArea = "all";
+let currentTransport = "all";
 
 const $ = (id) =>
   document.getElementById(id);
@@ -43,7 +43,6 @@ function initMap() {
     maxZoom: 16
   }).fitBounds(SYDNEY_BOUNDS);
 
-
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -53,11 +52,7 @@ function initMap() {
     }
   ).addTo(map);
 
-
-  map.on(
-    "click",
-    handleMapClick
-  );
+  map.on("click", handleMapClick);
 }
 
 
@@ -72,7 +67,6 @@ function handleMapClick(event) {
     event.latlng.lng
   ]);
 
-
   const marker =
     L.circleMarker(
       event.latlng,
@@ -85,12 +79,9 @@ function handleMapClick(event) {
       }
     ).addTo(map);
 
-
   pointMarkers.push(marker);
 
-
   redrawUserLine();
-
   updateControls();
 }
 
@@ -98,21 +89,13 @@ function handleMapClick(event) {
 function redrawUserLine() {
 
   if (drawnLine) {
-
-    map.removeLayer(
-      drawnLine
-    );
-
+    map.removeLayer(drawnLine);
     drawnLine = null;
   }
 
-
-  if (
-    drawnPoints.length < 2
-  ) {
+  if (drawnPoints.length < 2) {
     return;
   }
-
 
   drawnLine =
     L.polyline(
@@ -131,28 +114,21 @@ function redrawUserLine() {
 function updateControls() {
 
   if ($("pointCount")) {
-
     $("pointCount").textContent =
       drawnPoints.length;
   }
 
-
   if ($("undoBtn")) {
-
     $("undoBtn").disabled =
       drawnPoints.length === 0;
   }
 
-
   if ($("clearBtn")) {
-
     $("clearBtn").disabled =
       drawnPoints.length === 0;
   }
 
-
   if ($("submitBtn")) {
-
     $("submitBtn").disabled =
       drawnPoints.length < 2;
   }
@@ -160,78 +136,52 @@ function updateControls() {
 
 
 /* =========================================================
-   UNDO
+   UNDO / CLEAR
 ========================================================= */
 
 function undoPoint() {
 
-  if (
-    drawnPoints.length === 0
-  ) {
+  if (drawnPoints.length === 0) {
     return;
   }
 
-
   drawnPoints.pop();
-
 
   const marker =
     pointMarkers.pop();
 
-
   if (marker) {
-
-    map.removeLayer(
-      marker
-    );
+    map.removeLayer(marker);
   }
 
-
   redrawUserLine();
-
   updateControls();
 }
 
-
-/* =========================================================
-   CLEAR
-========================================================= */
 
 function clearDrawing() {
 
   drawnPoints = [];
 
-
   pointMarkers.forEach(
     (marker) => {
-
-      map.removeLayer(
-        marker
-      );
-
+      map.removeLayer(marker);
     }
   );
 
-
   pointMarkers = [];
 
-
   if (drawnLine) {
-
-    map.removeLayer(
-      drawnLine
-    );
-
+    map.removeLayer(drawnLine);
     drawnLine = null;
   }
-
 
   updateControls();
 }
 
 
 /* =========================================================
-   DRAWING SECTION
+   SECTIONS
 ========================================================= */
 
 function showDrawingSection() {
@@ -240,29 +190,21 @@ function showDrawingSection() {
     .classList
     .remove("hidden");
 
-
   $("detailsSection")
     .classList
     .add("hidden");
-
 
   $("resultSection")
     .classList
     .add("hidden");
 
-
   setTimeout(() => {
 
     if (!map) {
-
       initMap();
-
     } else {
-
       map.invalidateSize();
-
     }
-
 
     $("drawSection")
       .scrollIntoView({
@@ -274,33 +216,23 @@ function showDrawingSection() {
 }
 
 
-/* =========================================================
-   DETAILS
-========================================================= */
-
 function showDetails() {
 
-  if (
-    drawnPoints.length < 2
-  ) {
+  if (drawnPoints.length < 2) {
     return;
   }
-
 
   $("drawSection")
     .classList
     .add("hidden");
 
-
   $("detailsSection")
     .classList
     .remove("hidden");
 
-
   $("resultSection")
     .classList
     .add("hidden");
-
 
   $("detailsSection")
     .scrollIntoView({
@@ -316,11 +248,9 @@ function showDrawingAgain() {
     .classList
     .add("hidden");
 
-
   $("drawSection")
     .classList
     .remove("hidden");
-
 
   setTimeout(() => {
 
@@ -339,7 +269,7 @@ function showDrawingAgain() {
 
 
 /* =========================================================
-   SUPABASE — LOAD
+   SUPABASE
 ========================================================= */
 
 async function loadLiveBoundaries() {
@@ -347,12 +277,10 @@ async function loadLiveBoundaries() {
   const endpoint =
     `${SUPABASE_URL}/rest/v1/responses?select=*`;
 
-
   console.log(
-    "Loading live boundaries from:",
+    "Loading responses:",
     endpoint
   );
-
 
   try {
 
@@ -375,17 +303,8 @@ async function loadLiveBoundaries() {
         }
       );
 
-
     const responseText =
       await response.text();
-
-
-    console.log(
-      "Live results response:",
-      response.status,
-      responseText
-    );
-
 
     if (!response.ok) {
 
@@ -394,20 +313,246 @@ async function loadLiveBoundaries() {
       );
     }
 
-
-    return JSON.parse(
-      responseText
-    );
+    return JSON.parse(responseText);
 
   } catch (error) {
 
     console.error(
-      "Could not load live boundaries:",
+      "Could not load responses:",
       error
     );
 
     return null;
   }
+}
+
+
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+function setupDemographicFilters() {
+
+  const container =
+    document.createElement("div");
+
+  container.id =
+    "demographicFilters";
+
+  container.innerHTML = `
+
+    <div class="demographic-filter-heading">
+      FILTER RESPONSES
+    </div>
+
+    <div class="demographic-filter-row">
+
+      <label>
+        AREA
+
+        <select id="areaFilter">
+
+          <option value="all">
+            Everyone
+          </option>
+
+          <option value="eastern">
+            Eastern Sydney
+          </option>
+
+          <option value="inner">
+            Inner Sydney
+          </option>
+
+          <option value="northern">
+            Northern Sydney
+          </option>
+
+          <option value="western">
+            Western Sydney
+          </option>
+
+          <option value="southern">
+            Southern Sydney
+          </option>
+
+          <option value="other">
+            Somewhere else in Sydney
+          </option>
+
+          <option value="">
+            Prefer not to say
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+        TRANSPORT
+
+        <select id="transportFilter">
+
+          <option value="all">
+            Everyone
+          </option>
+
+          <option value="train">
+            Train / Metro
+          </option>
+
+          <option value="bus">
+            Bus
+          </option>
+
+          <option value="light-rail">
+            Light rail
+          </option>
+
+          <option value="ferry">
+            Ferry
+          </option>
+
+          <option value="car">
+            Car
+          </option>
+
+          <option value="walking">
+            Walking
+          </option>
+
+          <option value="cycling">
+            Cycling
+          </option>
+
+          <option value="mixed">
+            Mixed / varies
+          </option>
+
+          <option value="">
+            Prefer not to say
+          </option>
+
+        </select>
+
+      </label>
+
+    </div>
+  `;
+
+  const filters =
+    $("resultFilters");
+
+  filters.parentNode.insertBefore(
+    container,
+    filters
+  );
+
+
+  $("areaFilter")
+    .addEventListener(
+      "change",
+      (event) => {
+
+        currentArea =
+          event.target.value;
+
+        renderFilteredResults();
+      }
+    );
+
+
+  $("transportFilter")
+    .addEventListener(
+      "change",
+      (event) => {
+
+        currentTransport =
+          event.target.value;
+
+        renderFilteredResults();
+      }
+    );
+}
+
+
+/* =========================================================
+   FILTER DATA
+========================================================= */
+
+function getFilteredSubmissions() {
+
+  return submissions.filter(
+    (submission) => {
+
+      const areaMatches =
+        currentArea === "all" ||
+        (submission.area || "") ===
+          currentArea;
+
+      const transportMatches =
+        currentTransport === "all" ||
+        (submission.transport || "") ===
+          currentTransport;
+
+      return (
+        areaMatches &&
+        transportMatches
+      );
+    }
+  );
+}
+
+
+/* =========================================================
+   FILTER DESCRIPTION
+========================================================= */
+
+function getFilterDescription(
+  filtered
+) {
+
+  const parts = [];
+
+  if (currentArea !== "all") {
+
+    const select =
+      $("areaFilter");
+
+    const text =
+      select.options[
+        select.selectedIndex
+      ].text;
+
+    parts.push(text);
+  }
+
+
+  if (
+    currentTransport !== "all"
+  ) {
+
+    const select =
+      $("transportFilter");
+
+    const text =
+      select.options[
+        select.selectedIndex
+      ].text;
+
+    parts.push(text);
+  }
+
+
+  if (parts.length === 0) {
+
+    return `${filtered.length} responses`;
+
+  }
+
+
+  return `${filtered.length} responses · ${parts.join(" · ")}`;
 }
 
 
@@ -421,11 +566,9 @@ function updateResultVisibility() {
     currentView === "all" ||
     currentView === "lines";
 
-
   const showDensity =
     currentView === "all" ||
     currentView === "density";
-
 
   const showMine =
     currentView === "all" ||
@@ -436,17 +579,9 @@ function updateResultVisibility() {
     (layer) => {
 
       if (showLines) {
-
-        layer.addTo(
-          resultMap
-        );
-
+        layer.addTo(resultMap);
       } else {
-
-        resultMap.removeLayer(
-          layer
-        );
-
+        resultMap.removeLayer(layer);
       }
 
     }
@@ -456,17 +591,11 @@ function updateResultVisibility() {
   if (densityLayer) {
 
     if (showDensity) {
-
-      densityLayer.addTo(
-        resultMap
-      );
-
+      densityLayer.addTo(resultMap);
     } else {
-
       resultMap.removeLayer(
         densityLayer
       );
-
     }
   }
 
@@ -474,17 +603,13 @@ function updateResultVisibility() {
   if (myBoundaryLayer) {
 
     if (showMine) {
-
       myBoundaryLayer.addTo(
         resultMap
       );
-
     } else {
-
       resultMap.removeLayer(
         myBoundaryLayer
       );
-
     }
   }
 
@@ -493,17 +618,11 @@ function updateResultVisibility() {
     (layer) => {
 
       if (showMine) {
-
-        layer.addTo(
-          resultMap
-        );
-
+        layer.addTo(resultMap);
       } else {
-
         resultMap.removeLayer(
           layer
         );
-
       }
 
     }
@@ -512,52 +631,115 @@ function updateResultVisibility() {
 
 
 /* =========================================================
-   FILTER BUTTONS
+   DRAW FILTERED RESULTS
 ========================================================= */
 
-function setupFilters() {
+function renderFilteredResults() {
 
-  document
-    .querySelectorAll(
-      ".result-filter"
-    )
-    .forEach(
-      (button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            currentView =
-              button.dataset.view;
+  if (!resultMap) {
+    return;
+  }
 
 
-            document
-              .querySelectorAll(
-                ".result-filter"
-              )
-              .forEach(
-                (other) => {
+  boundaryLayers.forEach(
+    (layer) => {
+      resultMap.removeLayer(layer);
+    }
+  );
 
-                  other.classList
-                    .remove(
-                      "active"
-                    );
-
-                }
-              );
+  boundaryLayers = [];
 
 
-            button.classList
-              .add("active");
+  if (densityLayer) {
+
+    resultMap.removeLayer(
+      densityLayer
+    );
+
+    densityLayer = null;
+  }
 
 
-            updateResultVisibility();
+  const filtered =
+    getFilteredSubmissions();
+
+
+  const heatPoints = [];
+
+
+  filtered.forEach(
+    (submission) => {
+
+      if (
+        !submission.boundary ||
+        submission.boundary.length < 2
+      ) {
+        return;
+      }
+
+
+      const layer =
+        L.polyline(
+          submission.boundary,
+          {
+            color: "#101114",
+            weight: 2,
+            opacity: 0.22,
+            lineCap: "round",
+            lineJoin: "round"
           }
         );
 
-      }
+
+      boundaryLayers.push(
+        layer
+      );
+
+
+      submission.boundary.forEach(
+        (point) => {
+
+          heatPoints.push([
+            point[0],
+            point[1],
+            0.4
+          ]);
+
+        }
+      );
+
+    }
+  );
+
+
+  if (
+    heatPoints.length > 0 &&
+    typeof L.heatLayer ===
+      "function"
+  ) {
+
+    densityLayer =
+      L.heatLayer(
+        heatPoints,
+        {
+          radius: 28,
+          blur: 22,
+          maxZoom: 13,
+          minOpacity: 0.22
+        }
+      );
+
+  }
+
+
+  $("resultTitle")
+    .textContent =
+    getFilterDescription(
+      filtered
     );
+
+
+  updateResultVisibility();
 }
 
 
@@ -571,11 +753,9 @@ async function renderResults() {
     .classList
     .add("hidden");
 
-
   $("detailsSection")
     .classList
     .add("hidden");
-
 
   $("resultSection")
     .classList
@@ -618,42 +798,86 @@ async function renderResults() {
       }
 
 
-      /*
-        REMOVE OLD LAYERS
-      */
-
-      boundaryLayers.forEach(
-        (layer) => {
-
-          resultMap.removeLayer(
-            layer
-          );
-
-        }
-      );
+      submissions =
+        await loadLiveBoundaries();
 
 
-      boundaryLayers = [];
+      if (!submissions) {
 
+        $("resultTitle")
+          .textContent =
+          "Couldn't load results";
 
-      if (densityLayer) {
+        $("resultDescription")
+          .textContent =
+          "Something went wrong loading the latest responses.";
 
-        resultMap.removeLayer(
-          densityLayer
-        );
-
-        densityLayer = null;
+        return;
       }
 
+
+      /*
+        SET UP FILTERS ONCE
+      */
+
+      if (
+        !$("areaFilter")
+      ) {
+        setupDemographicFilters();
+      }
+
+
+      /*
+        RESET FILTERS
+      */
+
+      currentArea =
+        "all";
+
+      currentTransport =
+        "all";
+
+      currentView =
+        "all";
+
+
+      $("areaFilter").value =
+        "all";
+
+      $("transportFilter").value =
+        "all";
+
+
+      document
+        .querySelectorAll(
+          ".result-filter"
+        )
+        .forEach(
+          (button) => {
+
+            button.classList.toggle(
+              "active",
+              button.dataset.view ===
+                "all"
+            );
+
+          }
+        );
+
+
+      /*
+        YOUR LINE
+      */
 
       if (myBoundaryLayer) {
 
         resultMap.removeLayer(
           myBoundaryLayer
         );
-
-        myBoundaryLayer = null;
       }
+
+
+      myBoundaryLayer = null;
 
 
       myPointLayers.forEach(
@@ -669,137 +893,6 @@ async function renderResults() {
 
       myPointLayers = [];
 
-
-      /*
-        LOAD DATA
-      */
-
-      const data =
-        await loadLiveBoundaries();
-
-
-      if (!data) {
-
-        $("resultTitle")
-          .textContent =
-          "Couldn't load results";
-
-
-        $("resultDescription")
-          .textContent =
-          "Something went wrong loading the latest responses. Try refreshing the page.";
-
-
-        return;
-      }
-
-
-      submissions =
-        data;
-
-
-      /*
-        COUNT
-      */
-
-      $("resultTitle")
-        .textContent =
-        `${data.length} Sydney Split ${
-          data.length === 1
-            ? "response"
-            : "responses"
-        }`;
-
-
-      $("resultDescription")
-        .textContent =
-        "Your boundary is shown in red. Other submissions are anonymous.";
-
-
-      /*
-        DENSITY
-      */
-
-      const heatPoints = [];
-
-
-      /*
-        OTHER BOUNDARIES
-      */
-
-      data.forEach(
-        (submission) => {
-
-          if (
-            !submission.boundary ||
-            submission.boundary.length < 2
-          ) {
-            return;
-          }
-
-
-          const layer =
-            L.polyline(
-              submission.boundary,
-              {
-                color: "#101114",
-                weight: 2,
-                opacity: 0.22,
-                lineCap: "round",
-                lineJoin: "round"
-              }
-            );
-
-
-          boundaryLayers.push(
-            layer
-          );
-
-
-          submission.boundary
-            .forEach(
-              (point) => {
-
-                heatPoints.push([
-                  point[0],
-                  point[1],
-                  0.4
-                ]);
-
-              }
-            );
-
-        }
-      );
-
-
-      /*
-        DENSITY LAYER
-      */
-
-      if (
-        heatPoints.length > 0 &&
-        typeof L.heatLayer ===
-          "function"
-      ) {
-
-        densityLayer =
-          L.heatLayer(
-            heatPoints,
-            {
-              radius: 28,
-              blur: 22,
-              maxZoom: 13,
-              minOpacity: 0.22
-            }
-          );
-
-      }
-
-
-      /*
-        YOUR LINE
-      */
 
       if (
         drawnPoints.length >= 2
@@ -821,7 +914,7 @@ async function renderResults() {
         drawnPoints.forEach(
           (point) => {
 
-            const marker =
+            myPointLayers.push(
               L.circleMarker(
                 point,
                 {
@@ -831,51 +924,16 @@ async function renderResults() {
                   fillColor: "#ffffff",
                   fillOpacity: 1
                 }
-              );
-
-
-            myPointLayers.push(
-              marker
+              )
             );
 
           }
         );
-
       }
 
 
-      /*
-        FILTERS
-      */
+      renderFilteredResults();
 
-      currentView =
-        "all";
-
-
-      document
-        .querySelectorAll(
-          ".result-filter"
-        )
-        .forEach(
-          (button) => {
-
-            button.classList
-              .toggle(
-                "active",
-                button.dataset.view ===
-                  "all"
-              );
-
-          }
-        );
-
-
-      updateResultVisibility();
-
-
-      /*
-        SCROLL
-      */
 
       $("resultSection")
         .scrollIntoView({
@@ -909,7 +967,6 @@ async function submitBoundary() {
   submitButton.disabled =
     true;
 
-
   submitButton.textContent =
     "SUBMITTING…";
 
@@ -921,20 +978,11 @@ async function submitBoundary() {
   const area =
     $("areaSelect").value;
 
-
   const transport =
     $("transportSelect").value;
 
-
   const comment =
-    $("commentInput").value
-      .trim();
-
-
-  console.log(
-    "Submitting to:",
-    endpoint
-  );
+    $("commentInput").value.trim();
 
 
   try {
@@ -1005,11 +1053,7 @@ async function submitBoundary() {
 
 
     setTimeout(
-      () => {
-
-        renderResults();
-
-      },
+      renderResults,
       500
     );
 
@@ -1029,7 +1073,6 @@ async function submitBoundary() {
 
     submitButton.disabled =
       false;
-
 
     submitButton.textContent =
       "SUBMIT RESPONSE →";
@@ -1054,10 +1097,6 @@ function startAgain() {
 
   $("commentInput").value =
     "";
-
-
-  currentView =
-    "all";
 
 
   $("resultSection")
@@ -1125,7 +1164,5 @@ $("againBtn")
 /* =========================================================
    START
 ========================================================= */
-
-setupFilters();
 
 updateControls();
