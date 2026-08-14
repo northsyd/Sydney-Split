@@ -374,18 +374,23 @@ async function submitBoundary() {
   submitButton.disabled = true;
   submitButton.textContent = "SUBMITTING…";
 
+  const endpoint =
+    `${SUPABASE_URL}/rest/v1/responses`;
+
+  console.log("Submitting to:", endpoint);
 
   try {
 
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/responses`,
+      endpoint,
       {
         method: "POST",
 
         headers: {
-          "Content-Type": "application/json",
           "apikey": SUPABASE_KEY,
           "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json",
           "Prefer": "return=minimal"
         },
 
@@ -396,22 +401,26 @@ async function submitBoundary() {
     );
 
 
+    const responseText = await response.text();
+
+    console.log(
+      "Supabase response:",
+      response.status,
+      responseText
+    );
+
+
     if (!response.ok) {
 
-      const errorText = await response.text();
-
-      console.error(
-        "Supabase submission failed:",
-        errorText
-      );
-
       throw new Error(
-        "Submission failed"
+        `Supabase returned ${response.status}: ${responseText}`
       );
+
     }
 
 
     submitButton.textContent = "SUBMITTED ✓";
+
 
     setTimeout(() => {
       renderResults();
@@ -420,14 +429,18 @@ async function submitBoundary() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Supabase submission failed:",
+      error
+    );
 
     alert(
-      "Something went wrong submitting your boundary. Please try again."
+      "Something went wrong submitting your boundary. Check the browser console for details."
     );
 
     submitButton.disabled = false;
     submitButton.textContent = "SUBMIT BOUNDARY →";
+
   }
 }
 
