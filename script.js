@@ -4,10 +4,12 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_1N2eQRZ3sP8gQefc7BLF-g_QtBxm01e";
 
+
 const SYDNEY_BOUNDS = [
   [-34.25, 150.55],
   [-33.35, 151.45]
 ];
+
 
 let map = null;
 let resultMap = null;
@@ -16,16 +18,18 @@ let drawnPoints = [];
 let drawnLine = null;
 let pointMarkers = [];
 
-let densityLayer = null;
-let boundaryLayers = [];
+let submissions = [];
+
+let responseLayers = [];
+let densityLayers = [];
+
 let myBoundaryLayer = null;
 let myPointLayers = [];
 
-let submissions = [];
-
-let currentView = "all";
 let currentArea = "all";
 let currentTransport = "all";
+let currentView = "all";
+
 
 const $ = (id) =>
   document.getElementById(id);
@@ -43,6 +47,7 @@ function initMap() {
     maxZoom: 16
   }).fitBounds(SYDNEY_BOUNDS);
 
+
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -52,7 +57,11 @@ function initMap() {
     }
   ).addTo(map);
 
-  map.on("click", handleMapClick);
+
+  map.on(
+    "click",
+    handleMapClick
+  );
 }
 
 
@@ -67,6 +76,7 @@ function handleMapClick(event) {
     event.latlng.lng
   ]);
 
+
   const marker =
     L.circleMarker(
       event.latlng,
@@ -79,23 +89,31 @@ function handleMapClick(event) {
       }
     ).addTo(map);
 
+
   pointMarkers.push(marker);
 
-  redrawUserLine();
+
+  redrawDrawing();
   updateControls();
 }
 
 
-function redrawUserLine() {
+function redrawDrawing() {
 
   if (drawnLine) {
-    map.removeLayer(drawnLine);
+
+    map.removeLayer(
+      drawnLine
+    );
+
     drawnLine = null;
   }
+
 
   if (drawnPoints.length < 2) {
     return;
   }
+
 
   drawnLine =
     L.polyline(
@@ -111,24 +129,36 @@ function redrawUserLine() {
 }
 
 
+/* =========================================================
+   CONTROLS
+========================================================= */
+
 function updateControls() {
 
   if ($("pointCount")) {
-    $("pointCount").textContent =
+
+    $("pointCount")
+      .textContent =
       drawnPoints.length;
   }
 
+
   if ($("undoBtn")) {
+
     $("undoBtn").disabled =
       drawnPoints.length === 0;
   }
 
+
   if ($("clearBtn")) {
+
     $("clearBtn").disabled =
       drawnPoints.length === 0;
   }
 
+
   if ($("submitBtn")) {
+
     $("submitBtn").disabled =
       drawnPoints.length < 2;
   }
@@ -136,103 +166,175 @@ function updateControls() {
 
 
 /* =========================================================
-   UNDO / CLEAR
+   UNDO
 ========================================================= */
 
 function undoPoint() {
 
-  if (drawnPoints.length === 0) {
+  if (
+    drawnPoints.length === 0
+  ) {
     return;
   }
 
+
   drawnPoints.pop();
+
 
   const marker =
     pointMarkers.pop();
 
+
   if (marker) {
-    map.removeLayer(marker);
+
+    map.removeLayer(
+      marker
+    );
   }
 
-  redrawUserLine();
+
+  redrawDrawing();
   updateControls();
 }
 
+
+/* =========================================================
+   CLEAR
+========================================================= */
 
 function clearDrawing() {
 
   drawnPoints = [];
 
+
   pointMarkers.forEach(
     (marker) => {
-      map.removeLayer(marker);
+
+      if (map) {
+
+        map.removeLayer(
+          marker
+        );
+      }
+
     }
   );
 
+
   pointMarkers = [];
 
+
   if (drawnLine) {
-    map.removeLayer(drawnLine);
+
+    map.removeLayer(
+      drawnLine
+    );
+
     drawnLine = null;
   }
+
 
   updateControls();
 }
 
 
 /* =========================================================
-   SECTIONS
+   DRAWING SECTION
 ========================================================= */
 
 function showDrawingSection() {
 
-  $("drawSection")
-    .classList
-    .remove("hidden");
+  if ($("drawSection")) {
 
-  $("detailsSection")
-    .classList
-    .add("hidden");
+    $("drawSection")
+      .classList
+      .remove("hidden");
+  }
 
-  $("resultSection")
-    .classList
-    .add("hidden");
+
+  if ($("resultSection")) {
+
+    $("resultSection")
+      .classList
+      .add("hidden");
+  }
+
+
+  if ($("detailsSection")) {
+
+    $("detailsSection")
+      .classList
+      .add("hidden");
+  }
+
 
   setTimeout(() => {
 
     if (!map) {
+
       initMap();
+
     } else {
+
       map.invalidateSize();
     }
 
-    $("drawSection")
-      .scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+
+    if ($("drawSection")) {
+
+      $("drawSection")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+    }
 
   }, 100);
 }
 
 
+/* =========================================================
+   OPTIONAL DETAILS SECTION
+========================================================= */
+
 function showDetails() {
 
-  if (drawnPoints.length < 2) {
+  if (
+    drawnPoints.length < 2
+  ) {
     return;
   }
 
-  $("drawSection")
-    .classList
-    .add("hidden");
+
+  if (
+    !$("detailsSection")
+  ) {
+
+    submitBoundary();
+    return;
+  }
+
+
+  if ($("drawSection")) {
+
+    $("drawSection")
+      .classList
+      .add("hidden");
+  }
+
 
   $("detailsSection")
     .classList
     .remove("hidden");
 
-  $("resultSection")
-    .classList
-    .add("hidden");
+
+  if ($("resultSection")) {
+
+    $("resultSection")
+      .classList
+      .add("hidden");
+  }
+
 
   $("detailsSection")
     .scrollIntoView({
@@ -242,34 +344,8 @@ function showDetails() {
 }
 
 
-function showDrawingAgain() {
-
-  $("detailsSection")
-    .classList
-    .add("hidden");
-
-  $("drawSection")
-    .classList
-    .remove("hidden");
-
-  setTimeout(() => {
-
-    if (map) {
-      map.invalidateSize();
-    }
-
-    $("drawSection")
-      .scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-
-  }, 100);
-}
-
-
 /* =========================================================
-   SUPABASE
+   SUPABASE — LOAD
 ========================================================= */
 
 async function loadLiveBoundaries() {
@@ -277,10 +353,12 @@ async function loadLiveBoundaries() {
   const endpoint =
     `${SUPABASE_URL}/rest/v1/responses?select=*`;
 
+
   console.log(
     "Loading responses:",
     endpoint
   );
+
 
   try {
 
@@ -291,6 +369,7 @@ async function loadLiveBoundaries() {
           method: "GET",
 
           headers: {
+
             "apikey":
               SUPABASE_KEY,
 
@@ -303,8 +382,17 @@ async function loadLiveBoundaries() {
         }
       );
 
+
     const responseText =
       await response.text();
+
+
+    console.log(
+      "Results response:",
+      response.status,
+      responseText
+    );
+
 
     if (!response.ok) {
 
@@ -313,7 +401,11 @@ async function loadLiveBoundaries() {
       );
     }
 
-    return JSON.parse(responseText);
+
+    return JSON.parse(
+      responseText
+    );
+
 
   } catch (error) {
 
@@ -322,24 +414,47 @@ async function loadLiveBoundaries() {
       error
     );
 
-    return null;
+
+    return [];
   }
 }
 
 
 /* =========================================================
-   FILTER PANEL
+   DEMOGRAPHIC FILTERS
 ========================================================= */
 
-function setupDemographicFilters() {
+function createDemographicFilters() {
 
-  const container =
-    document.createElement("div");
+  if (
+    $("demographicFilters")
+  ) {
+    return;
+  }
 
-  container.id =
+
+  const resultsMapWrap =
+    document.querySelector(
+      ".result-map-wrap"
+    );
+
+
+  if (!resultsMapWrap) {
+    return;
+  }
+
+
+  const filterBox =
+    document.createElement(
+      "div"
+    );
+
+
+  filterBox.id =
     "demographicFilters";
 
-  container.innerHTML = `
+
+  filterBox.innerHTML = `
 
     <div class="demographic-filter-heading">
       FILTER RESPONSES
@@ -348,6 +463,7 @@ function setupDemographicFilters() {
     <div class="demographic-filter-row">
 
       <label>
+
         AREA
 
         <select id="areaFilter">
@@ -380,7 +496,7 @@ function setupDemographicFilters() {
             Somewhere else in Sydney
           </option>
 
-          <option value="">
+          <option value="prefer-not">
             Prefer not to say
           </option>
 
@@ -390,6 +506,7 @@ function setupDemographicFilters() {
 
 
       <label>
+
         TRANSPORT
 
         <select id="transportFilter">
@@ -430,7 +547,7 @@ function setupDemographicFilters() {
             Mixed / varies
           </option>
 
-          <option value="">
+          <option value="prefer-not">
             Prefer not to say
           </option>
 
@@ -441,12 +558,10 @@ function setupDemographicFilters() {
     </div>
   `;
 
-  const filters =
-    $("resultFilters");
 
-  filters.parentNode.insertBefore(
-    container,
-    filters
+  resultsMapWrap.parentNode.insertBefore(
+    filterBox,
+    resultsMapWrap
   );
 
 
@@ -478,6 +593,130 @@ function setupDemographicFilters() {
 
 
 /* =========================================================
+   MAP VIEW BUTTONS
+========================================================= */
+
+function createMapViewControls() {
+
+  if (
+    $("resultFilters")
+  ) {
+    return;
+  }
+
+
+  const resultsMapWrap =
+    document.querySelector(
+      ".result-map-wrap"
+    );
+
+
+  if (!resultsMapWrap) {
+    return;
+  }
+
+
+  const box =
+    document.createElement(
+      "div"
+    );
+
+
+  box.id =
+    "resultFilters";
+
+
+  box.innerHTML = `
+
+    <div class="result-filter-label">
+      MAP VIEW
+    </div>
+
+    <div class="result-filter-buttons">
+
+      <button
+        class="result-filter active"
+        data-view="all"
+        type="button"
+      >
+        ALL
+      </button>
+
+      <button
+        class="result-filter"
+        data-view="density"
+        type="button"
+      >
+        DENSITY
+      </button>
+
+      <button
+        class="result-filter"
+        data-view="lines"
+        type="button"
+      >
+        LINES
+      </button>
+
+      <button
+        class="result-filter"
+        data-view="mine"
+        type="button"
+      >
+        YOUR LINE
+      </button>
+
+    </div>
+  `;
+
+
+  resultsMapWrap.parentNode.insertBefore(
+    box,
+    resultsMapWrap
+  );
+
+
+  document
+    .querySelectorAll(
+      ".result-filter"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            currentView =
+              button.dataset.view;
+
+
+            document
+              .querySelectorAll(
+                ".result-filter"
+              )
+              .forEach(
+                (other) => {
+
+                  other.classList.toggle(
+                    "active",
+                    other === button
+                  );
+
+                }
+              );
+
+
+            updateResultVisibility();
+          }
+        );
+
+      }
+    );
+}
+
+
+/* =========================================================
    FILTER DATA
 ========================================================= */
 
@@ -486,15 +725,25 @@ function getFilteredSubmissions() {
   return submissions.filter(
     (submission) => {
 
+      const area =
+        submission.area ||
+        "";
+
+
+      const transport =
+        submission.transport ||
+        "";
+
+
       const areaMatches =
         currentArea === "all" ||
-        (submission.area || "") ===
-          currentArea;
+        area === currentArea;
+
 
       const transportMatches =
         currentTransport === "all" ||
-        (submission.transport || "") ===
-          currentTransport;
+        transport === currentTransport;
+
 
       return (
         areaMatches &&
@@ -506,179 +755,106 @@ function getFilteredSubmissions() {
 
 
 /* =========================================================
-   FILTER DESCRIPTION
+   RESULT TITLE
 ========================================================= */
 
-function getFilterDescription(
+function updateResultTitle(
   filtered
 ) {
 
-  const parts = [];
-
-  if (currentArea !== "all") {
-
-    const select =
-      $("areaFilter");
-
-    const text =
-      select.options[
-        select.selectedIndex
-      ].text;
-
-    parts.push(text);
-  }
-
-
-  if (
-    currentTransport !== "all"
-  ) {
-
-    const select =
-      $("transportFilter");
-
-    const text =
-      select.options[
-        select.selectedIndex
-      ].text;
-
-    parts.push(text);
-  }
-
-
-  if (parts.length === 0) {
-
-    return `${filtered.length} responses`;
-
-  }
-
-
-  return `${filtered.length} responses · ${parts.join(" · ")}`;
-}
-
-
-/* =========================================================
-   RESULTS VISIBILITY
-========================================================= */
-
-function updateResultVisibility() {
-
-  const showLines =
-    currentView === "all" ||
-    currentView === "lines";
-
-  const showDensity =
-    currentView === "all" ||
-    currentView === "density";
-
-  const showMine =
-    currentView === "all" ||
-    currentView === "mine";
-
-
-  boundaryLayers.forEach(
-    (layer) => {
-
-      if (showLines) {
-        layer.addTo(resultMap);
-      } else {
-        resultMap.removeLayer(layer);
-      }
-
-    }
-  );
-
-
-  if (densityLayer) {
-
-    if (showDensity) {
-      densityLayer.addTo(resultMap);
-    } else {
-      resultMap.removeLayer(
-        densityLayer
-      );
-    }
-  }
-
-
-  if (myBoundaryLayer) {
-
-    if (showMine) {
-      myBoundaryLayer.addTo(
-        resultMap
-      );
-    } else {
-      resultMap.removeLayer(
-        myBoundaryLayer
-      );
-    }
-  }
-
-
-  myPointLayers.forEach(
-    (layer) => {
-
-      if (showMine) {
-        layer.addTo(resultMap);
-      } else {
-        resultMap.removeLayer(
-          layer
-        );
-      }
-
-    }
-  );
-}
-
-
-/* =========================================================
-   DRAW FILTERED RESULTS
-========================================================= */
-
-function renderFilteredResults() {
-
-  if (!resultMap) {
+  if (!$("resultTitle")) {
     return;
   }
 
 
-  boundaryLayers.forEach(
+  let title =
+    `${filtered.length} Sydney Split `;
+
+
+  title +=
+    filtered.length === 1
+      ? "response"
+      : "responses";
+
+
+  $("resultTitle")
+    .textContent =
+    title;
+}
+
+
+/* =========================================================
+   REMOVE RESULT LAYERS
+========================================================= */
+
+function removeResultLayers() {
+
+  responseLayers.forEach(
     (layer) => {
-      resultMap.removeLayer(layer);
+
+      resultMap.removeLayer(
+        layer
+      );
+
     }
   );
 
-  boundaryLayers = [];
+
+  responseLayers = [];
 
 
-  if (densityLayer) {
+  densityLayers.forEach(
+    (layer) => {
 
-    resultMap.removeLayer(
-      densityLayer
-    );
+      resultMap.removeLayer(
+        layer
+      );
 
-    densityLayer = null;
-  }
+    }
+  );
+
+
+  densityLayers = [];
+}
+
+
+/* =========================================================
+   BUILD RESULT LAYERS
+========================================================= */
+
+function buildResultLayers() {
+
+  removeResultLayers();
 
 
   const filtered =
     getFilteredSubmissions();
 
 
-  const heatPoints = [];
-
-
   filtered.forEach(
     (submission) => {
 
       if (
-        !submission.boundary ||
+        !Array.isArray(
+          submission.boundary
+        )
+      ) {
+        return;
+      }
+
+
+      if (
         submission.boundary.length < 2
       ) {
         return;
       }
 
 
-      const layer =
+      /*
+        NORMAL LINE
+      */
+
+      const line =
         L.polyline(
           submission.boundary,
           {
@@ -691,19 +867,37 @@ function renderFilteredResults() {
         );
 
 
-      boundaryLayers.push(
-        layer
+      responseLayers.push(
+        line
       );
 
+
+      /*
+        SIMPLE DENSITY VISUALISATION
+
+        Instead of needing another plugin,
+        we draw faint circles at every
+        submitted point.
+      */
 
       submission.boundary.forEach(
         (point) => {
 
-          heatPoints.push([
-            point[0],
-            point[1],
-            0.4
-          ]);
+          const circle =
+            L.circle(
+              point,
+              {
+                radius: 900,
+                stroke: false,
+                fillColor: "#e83d24",
+                fillOpacity: 0.035
+              }
+            );
+
+
+          densityLayers.push(
+            circle
+          );
 
         }
       );
@@ -712,31 +906,144 @@ function renderFilteredResults() {
   );
 
 
-  if (
-    heatPoints.length > 0 &&
-    typeof L.heatLayer ===
-      "function"
-  ) {
+  updateResultTitle(
+    filtered
+  );
+}
 
-    densityLayer =
-      L.heatLayer(
-        heatPoints,
-        {
-          radius: 28,
-          blur: 22,
-          maxZoom: 13,
-          minOpacity: 0.22
-        }
-      );
 
+/* =========================================================
+   SHOW / HIDE MAP LAYERS
+========================================================= */
+
+function updateResultVisibility() {
+
+  if (!resultMap) {
+    return;
   }
 
 
-  $("resultTitle")
-    .textContent =
-    getFilterDescription(
-      filtered
-    );
+  const showLines =
+    currentView === "all" ||
+    currentView === "lines";
+
+
+  const showDensity =
+    currentView === "all" ||
+    currentView === "density";
+
+
+  const showMine =
+    currentView === "all" ||
+    currentView === "mine";
+
+
+  /*
+    OTHER RESPONSE LINES
+  */
+
+  responseLayers.forEach(
+    (layer) => {
+
+      if (showLines) {
+
+        layer.addTo(
+          resultMap
+        );
+
+      } else {
+
+        resultMap.removeLayer(
+          layer
+        );
+
+      }
+
+    }
+  );
+
+
+  /*
+    DENSITY
+  */
+
+  densityLayers.forEach(
+    (layer) => {
+
+      if (showDensity) {
+
+        layer.addTo(
+          resultMap
+        );
+
+      } else {
+
+        resultMap.removeLayer(
+          layer
+        );
+
+      }
+
+    }
+  );
+
+
+  /*
+    YOUR LINE
+  */
+
+  if (myBoundaryLayer) {
+
+    if (showMine) {
+
+      myBoundaryLayer.addTo(
+        resultMap
+      );
+
+    } else {
+
+      resultMap.removeLayer(
+        myBoundaryLayer
+      );
+
+    }
+  }
+
+
+  myPointLayers.forEach(
+    (layer) => {
+
+      if (showMine) {
+
+        layer.addTo(
+          resultMap
+        );
+
+      } else {
+
+        resultMap.removeLayer(
+          layer
+        );
+
+      }
+
+    }
+  );
+}
+
+
+/* =========================================================
+   RENDER FILTERED RESULTS
+========================================================= */
+
+function renderFilteredResults() {
+
+  if (!resultMap) {
+    return;
+  }
+
+
+  buildResultLayers();
 
 
   updateResultVisibility();
@@ -744,26 +1051,120 @@ function renderFilteredResults() {
 
 
 /* =========================================================
-   RESULTS MAP
+   CREATE YOUR LINE
+========================================================= */
+
+function createMyLine() {
+
+  /*
+    Remove old version
+  */
+
+  if (myBoundaryLayer) {
+
+    resultMap.removeLayer(
+      myBoundaryLayer
+    );
+
+    myBoundaryLayer = null;
+  }
+
+
+  myPointLayers.forEach(
+    (layer) => {
+
+      resultMap.removeLayer(
+        layer
+      );
+
+    }
+  );
+
+
+  myPointLayers = [];
+
+
+  if (
+    drawnPoints.length < 2
+  ) {
+    return;
+  }
+
+
+  myBoundaryLayer =
+    L.polyline(
+      drawnPoints,
+      {
+        color: "#e83d24",
+        weight: 6,
+        opacity: 1,
+        lineCap: "round",
+        lineJoin: "round"
+      }
+    );
+
+
+  drawnPoints.forEach(
+    (point) => {
+
+      const marker =
+        L.circleMarker(
+          point,
+          {
+            radius: 4,
+            weight: 1,
+            color: "#e83d24",
+            fillColor: "#ffffff",
+            fillOpacity: 1
+          }
+        );
+
+
+      myPointLayers.push(
+        marker
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   RESULTS PAGE
 ========================================================= */
 
 async function renderResults() {
 
-  $("drawSection")
-    .classList
-    .add("hidden");
+  if ($("drawSection")) {
 
-  $("detailsSection")
-    .classList
-    .add("hidden");
+    $("drawSection")
+      .classList
+      .add("hidden");
+  }
 
-  $("resultSection")
-    .classList
-    .remove("hidden");
+
+  if ($("detailsSection")) {
+
+    $("detailsSection")
+      .classList
+      .add("hidden");
+  }
+
+
+  if ($("resultSection")) {
+
+    $("resultSection")
+      .classList
+      .remove("hidden");
+  }
 
 
   setTimeout(
     async () => {
+
+      /*
+        CREATE RESULT MAP
+      */
 
       if (!resultMap) {
 
@@ -794,37 +1195,24 @@ async function renderResults() {
       } else {
 
         resultMap.invalidateSize();
-
       }
 
+
+      /*
+        LOAD DATA
+      */
 
       submissions =
         await loadLiveBoundaries();
 
 
-      if (!submissions) {
-
-        $("resultTitle")
-          .textContent =
-          "Couldn't load results";
-
-        $("resultDescription")
-          .textContent =
-          "Something went wrong loading the latest responses.";
-
-        return;
-      }
-
-
       /*
-        SET UP FILTERS ONCE
+        FILTER CONTROLS
       */
 
-      if (
-        !$("areaFilter")
-      ) {
-        setupDemographicFilters();
-      }
+      createDemographicFilters();
+
+      createMapViewControls();
 
 
       /*
@@ -841,11 +1229,18 @@ async function renderResults() {
         "all";
 
 
-      $("areaFilter").value =
-        "all";
+      if ($("areaFilter")) {
 
-      $("transportFilter").value =
-        "all";
+        $("areaFilter").value =
+          "all";
+      }
+
+
+      if ($("transportFilter")) {
+
+        $("transportFilter").value =
+          "all";
+      }
 
 
       document
@@ -866,80 +1261,31 @@ async function renderResults() {
 
 
       /*
-        YOUR LINE
+        CREATE USER LINE
       */
 
-      if (myBoundaryLayer) {
-
-        resultMap.removeLayer(
-          myBoundaryLayer
-        );
-      }
+      createMyLine();
 
 
-      myBoundaryLayer = null;
-
-
-      myPointLayers.forEach(
-        (layer) => {
-
-          resultMap.removeLayer(
-            layer
-          );
-
-        }
-      );
-
-
-      myPointLayers = [];
-
-
-      if (
-        drawnPoints.length >= 2
-      ) {
-
-        myBoundaryLayer =
-          L.polyline(
-            drawnPoints,
-            {
-              color: "#e83d24",
-              weight: 6,
-              opacity: 1,
-              lineCap: "round",
-              lineJoin: "round"
-            }
-          );
-
-
-        drawnPoints.forEach(
-          (point) => {
-
-            myPointLayers.push(
-              L.circleMarker(
-                point,
-                {
-                  radius: 4,
-                  weight: 1,
-                  color: "#e83d24",
-                  fillColor: "#ffffff",
-                  fillOpacity: 1
-                }
-              )
-            );
-
-          }
-        );
-      }
-
+      /*
+        DRAW RESULTS
+      */
 
       renderFilteredResults();
 
 
-      $("resultSection")
-        .scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
+      /*
+        SCROLL
+      */
+
+      if ($("resultSection")) {
+
+        $("resultSection")
+          .scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+      }
 
     },
     100
@@ -961,28 +1307,62 @@ async function submitBoundary() {
 
 
   const submitButton =
-    $("finalSubmitBtn");
+    $("finalSubmitBtn") ||
+    $("submitBtn");
 
 
-  submitButton.disabled =
-    true;
+  if (submitButton) {
 
-  submitButton.textContent =
-    "SUBMITTING…";
+    submitButton.disabled =
+      true;
+
+    submitButton.textContent =
+      "SUBMITTING…";
+  }
 
 
   const endpoint =
     `${SUPABASE_URL}/rest/v1/responses`;
 
 
+  /*
+    Optional demographic info
+  */
+
+  const areaElement =
+    $("areaSelect");
+
+
+  const transportElement =
+    $("transportSelect");
+
+
+  const commentElement =
+    $("commentInput");
+
+
   const area =
-    $("areaSelect").value;
+    areaElement
+      ? areaElement.value
+      : null;
+
 
   const transport =
-    $("transportSelect").value;
+    transportElement
+      ? transportElement.value
+      : null;
+
 
   const comment =
-    $("commentInput").value.trim();
+    commentElement
+      ? commentElement.value.trim()
+      : null;
+
+
+  console.log(
+    "Submitting to:",
+    endpoint
+  );
 
 
   try {
@@ -1048,8 +1428,11 @@ async function submitBoundary() {
     }
 
 
-    submitButton.textContent =
-      "SUBMITTED ✓";
+    if (submitButton) {
+
+      submitButton.textContent =
+        "SUBMITTED ✓";
+    }
 
 
     setTimeout(
@@ -1071,17 +1454,20 @@ async function submitBoundary() {
     );
 
 
-    submitButton.disabled =
-      false;
+    if (submitButton) {
 
-    submitButton.textContent =
-      "SUBMIT RESPONSE →";
+      submitButton.disabled =
+        false;
+
+      submitButton.textContent =
+        "SUBMIT RESPONSE →";
+    }
   }
 }
 
 
 /* =========================================================
-   RESET
+   AGAIN
 ========================================================= */
 
 function startAgain() {
@@ -1089,19 +1475,33 @@ function startAgain() {
   clearDrawing();
 
 
-  $("areaSelect").value =
-    "";
+  if ($("areaSelect")) {
 
-  $("transportSelect").value =
-    "";
-
-  $("commentInput").value =
-    "";
+    $("areaSelect").value =
+      "";
+  }
 
 
-  $("resultSection")
-    .classList
-    .add("hidden");
+  if ($("transportSelect")) {
+
+    $("transportSelect").value =
+      "";
+  }
+
+
+  if ($("commentInput")) {
+
+    $("commentInput").value =
+      "";
+  }
+
+
+  if ($("resultSection")) {
+
+    $("resultSection")
+      .classList
+      .add("hidden");
+  }
 
 
   showDrawingSection();
@@ -1109,60 +1509,81 @@ function startAgain() {
 
 
 /* =========================================================
-   BUTTONS
+   BUTTON EVENTS
 ========================================================= */
 
-$("startBtn")
-  .addEventListener(
-    "click",
-    showDrawingSection
-  );
+if ($("startBtn")) {
+
+  $("startBtn")
+    .addEventListener(
+      "click",
+      showDrawingSection
+    );
+}
 
 
-$("undoBtn")
-  .addEventListener(
-    "click",
-    undoPoint
-  );
+if ($("undoBtn")) {
+
+  $("undoBtn")
+    .addEventListener(
+      "click",
+      undoPoint
+    );
+}
 
 
-$("clearBtn")
-  .addEventListener(
-    "click",
-    clearDrawing
-  );
+if ($("clearBtn")) {
+
+  $("clearBtn")
+    .addEventListener(
+      "click",
+      clearDrawing
+    );
+}
 
 
-$("submitBtn")
-  .addEventListener(
-    "click",
-    showDetails
-  );
+if ($("submitBtn")) {
+
+  $("submitBtn")
+    .addEventListener(
+      "click",
+      showDetails
+    );
+}
 
 
-$("backBtn")
-  .addEventListener(
-    "click",
-    showDrawingAgain
-  );
+if ($("finalSubmitBtn")) {
+
+  $("finalSubmitBtn")
+    .addEventListener(
+      "click",
+      submitBoundary
+    );
+}
 
 
-$("finalSubmitBtn")
-  .addEventListener(
-    "click",
-    submitBoundary
-  );
+if ($("againBtn")) {
+
+  $("againBtn")
+    .addEventListener(
+      "click",
+      startAgain
+    );
+}
 
 
-$("againBtn")
-  .addEventListener(
-    "click",
-    startAgain
-  );
+if ($("backBtn")) {
+
+  $("backBtn")
+    .addEventListener(
+      "click",
+      showDrawingSection
+    );
+}
 
 
 /* =========================================================
-   START
+   INITIALISE
 ========================================================= */
 
 updateControls();
