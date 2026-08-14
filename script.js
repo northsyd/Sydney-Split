@@ -747,7 +747,7 @@ function buildResultLayers() {
           {
             color: "#101114",
             weight: 2,
-            opacity: 0.20,
+            opacity: 0.4,
             lineCap: "round",
             lineJoin: "round"
           }
@@ -774,10 +774,10 @@ function buildResultLayers() {
             L.circle(
               point,
               {
-                radius: 1400,
+                radius: 1000,
                 stroke: false,
                 fillColor: "#e83d24",
-                fillOpacity: 0.6
+                fillOpacity: 0.3
               }
             );
 
