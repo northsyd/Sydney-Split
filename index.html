@@ -22,227 +22,428 @@
 
 <body>
 
-  <header class="site-header">
+<header class="site-header">
 
-    <a href="#" class="brand">
-      <span class="brand-mark">SS</span>
-      <span>SYDNEY SPLIT</span>
-    </a>
+  <a href="#" class="brand">
+    <span class="brand-mark">SS</span>
+    <span>SYDNEY SPLIT</span>
+  </a>
 
-    <span class="project-label">
-      A NORTH SYDNEY TRANSPORT ASSOCIATION PROJECT
-    </span>
+  <span class="project-label">
+    A NORTH SYDNEY TRANSPORT ASSOCIATION PROJECT
+  </span>
 
-  </header>
+</header>
 
 
-  <main>
+<main>
 
-    <!-- HERO -->
+  <!-- HERO -->
 
-    <section class="hero">
+  <section class="hero">
 
-      <div class="hero-copy">
+    <div class="hero-copy">
+
+      <p class="eyebrow">
+        SYDNEY SPLIT
+      </p>
+
+      <h1>
+        WHERE IS THE<br>
+        <span>EAST–WEST DIVIDE?</span>
+      </h1>
+
+      <p class="intro">
+        Where does Eastern Sydney end and Western Sydney begin?
+        We want to see where Sydneysiders draw the line.
+      </p>
+
+      <button id="startBtn" class="primary-btn">
+        DRAW YOUR BOUNDARY
+        <span>→</span>
+      </button>
+
+    </div>
+
+    <div class="hero-note">
+
+      <span class="note-number">01</span>
+
+      <p>
+        Draw a line from north to south showing where
+        you think Eastern Sydney ends.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- DRAWING -->
+
+  <section id="drawSection" class="map-section hidden">
+
+    <div class="map-topbar">
+
+      <div>
 
         <p class="eyebrow">
-          SYDNEY SPLIT
+          YOUR TURN
         </p>
 
-        <h1>
-          WHERE IS THE<br>
-          <span>EAST–WEST DIVIDE?</span>
-        </h1>
-
-        <p class="intro">
-          Where does Eastern Sydney end and Western Sydney begin?
-          We want to see where Sydneysiders draw the line.
-        </p>
-
-        <button id="startBtn" class="primary-btn">
-          DRAW YOUR BOUNDARY
-          <span>→</span>
-        </button>
-
-      </div>
-
-
-      <div class="hero-note">
-
-        <span class="note-number">01</span>
+        <h2>
+          Draw the divide
+        </h2>
 
         <p>
-          Draw a line from north to south showing where
-          you think Eastern Sydney ends.
+          Click points from north to south. Draw the line wherever
+          you think Eastern Sydney becomes Western Sydney.
         </p>
 
       </div>
 
-    </section>
+      <div class="counter">
+
+        <span id="pointCount">0</span>
+
+        <small>
+          POINTS
+        </small>
+
+      </div>
+
+    </div>
 
 
-    <!-- DRAWING SECTION -->
+    <div class="map-wrap">
 
-    <section id="drawSection" class="map-section hidden">
+      <div
+        id="map"
+        aria-label="Interactive map of Sydney"
+      ></div>
 
-      <div class="map-topbar">
+      <div class="map-instructions">
 
-        <div>
+        <strong>
+          HOW IT WORKS
+        </strong>
 
-          <p class="eyebrow">
-            YOUR TURN
-          </p>
+        <span>
+          Click the map to place points.
+        </span>
 
-          <h2>
-            Draw the divide
-          </h2>
+        <span>
+          Use at least 2 points.
+        </span>
 
-          <p>
-            Click points from north to south. Draw the line wherever
-            you think Eastern Sydney becomes Western Sydney.
-          </p>
+        <span>
+          Work north → south.
+        </span>
 
-        </div>
+      </div>
+
+    </div>
 
 
-        <div class="counter">
+    <div class="map-actions">
 
-          <span id="pointCount">0</span>
+      <button
+        id="undoBtn"
+        class="secondary-btn"
+        disabled
+      >
+        UNDO
+      </button>
 
-          <small>
-            POINTS
-          </small>
+      <button
+        id="clearBtn"
+        class="secondary-btn"
+        disabled
+      >
+        CLEAR
+      </button>
 
-        </div>
+      <button
+        id="submitBtn"
+        class="primary-btn"
+        disabled
+      >
+        CONTINUE →
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- DETAILS -->
+
+  <section id="detailsSection" class="details-section hidden">
+
+    <div class="details-card">
+
+      <p class="eyebrow">
+        OPTIONAL DETAILS
+      </p>
+
+      <h2>
+        A little more about your response
+      </h2>
+
+      <p>
+        These questions help us compare responses.
+        You don't have to answer them.
+      </p>
+
+
+      <div class="form-group">
+
+        <label for="areaSelect">
+          WHERE DO YOU LIVE?
+        </label>
+
+        <select id="areaSelect">
+
+          <option value="">
+            Prefer not to say
+          </option>
+
+          <option value="eastern">
+            Eastern Sydney
+          </option>
+
+          <option value="inner">
+            Inner Sydney
+          </option>
+
+          <option value="northern">
+            Northern Sydney
+          </option>
+
+          <option value="western">
+            Western Sydney
+          </option>
+
+          <option value="southern">
+            Southern Sydney
+          </option>
+
+          <option value="other">
+            Somewhere else in Sydney
+          </option>
+
+        </select>
 
       </div>
 
 
-      <div class="map-wrap">
+      <div class="form-group">
 
-        <div
-          id="map"
-          aria-label="Interactive map of Sydney"
-        ></div>
+        <label for="transportSelect">
+          MAIN WAY YOU GET AROUND SYDNEY
+        </label>
 
+        <select id="transportSelect">
 
-        <div class="map-instructions">
+          <option value="">
+            Prefer not to say
+          </option>
 
-          <strong>
-            HOW IT WORKS
-          </strong>
+          <option value="train">
+            Train / Metro
+          </option>
 
-          <span>
-            Click the map to place points.
-          </span>
+          <option value="bus">
+            Bus
+          </option>
 
-          <span>
-            Use at least 2 points.
-          </span>
+          <option value="light-rail">
+            Light rail
+          </option>
 
-          <span>
-            Work north → south.
-          </span>
+          <option value="ferry">
+            Ferry
+          </option>
 
-        </div>
+          <option value="car">
+            Car
+          </option>
+
+          <option value="walking">
+            Walking
+          </option>
+
+          <option value="cycling">
+            Cycling
+          </option>
+
+          <option value="mixed">
+            Mixed / varies
+          </option>
+
+        </select>
 
       </div>
+
+
+      <div class="form-group">
+
+        <label for="commentInput">
+          ANYTHING ELSE?
+        </label>
+
+        <textarea
+          id="commentInput"
+          rows="3"
+          maxlength="500"
+          placeholder="Optional"
+        ></textarea>
+
+      </div>
+
+
+      <p class="privacy-note">
+        Your response is anonymous. We don't ask for your name,
+        email address or exact location.
+      </p>
 
 
       <div class="map-actions">
 
         <button
-          id="undoBtn"
+          id="backBtn"
           class="secondary-btn"
-          disabled
         >
-          UNDO
+          ← BACK
         </button>
 
         <button
-          id="clearBtn"
-          class="secondary-btn"
-          disabled
-        >
-          CLEAR
-        </button>
-
-        <button
-          id="submitBtn"
-          class="primary-btn"
-          disabled
-        >
-          SUBMIT BOUNDARY →
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- RESULTS -->
-
-    <section id="resultSection" class="result-section hidden">
-
-      <div class="result-card">
-
-        <p class="eyebrow">
-          LIVE RESULTS
-        </p>
-
-        <h2 id="resultTitle">
-          Loading Sydney Split…
-        </h2>
-
-        <p id="resultDescription">
-          Your boundary is shown in red.
-          Other submissions are shown in black.
-        </p>
-
-        <button
-          id="againBtn"
+          id="finalSubmitBtn"
           class="primary-btn"
         >
-          DRAW ANOTHER →
+          SUBMIT RESPONSE →
         </button>
 
       </div>
 
+    </div>
 
-      <div class="result-map-wrap">
+  </section>
 
-        <div
-          id="resultMap"
-          aria-label="Sydney Split results map"
-        ></div>
 
-        <div class="legend">
+  <!-- RESULTS -->
 
-          <span class="legend-line"></span>
-          <span>Your boundary</span>
+  <section id="resultSection" class="result-section hidden">
 
-          <span class="legend-dot"></span>
-          <span>Other submissions</span>
+    <div class="result-card">
 
-        </div>
+      <p class="eyebrow">
+        LIVE RESULTS
+      </p>
+
+      <h2 id="resultTitle">
+        Loading Sydney Split…
+      </h2>
+
+      <p id="resultDescription">
+        Your boundary is shown in red.
+        Other submissions are anonymous.
+      </p>
+
+      <button
+        id="againBtn"
+        class="primary-btn"
+      >
+        DRAW ANOTHER →
+      </button>
+
+    </div>
+
+
+    <div id="resultFilters">
+
+      <div class="result-filter-label">
+        MAP VIEW
+      </div>
+
+      <div class="result-filter-buttons">
+
+        <button
+          type="button"
+          class="result-filter active"
+          data-view="all"
+        >
+          ALL
+        </button>
+
+        <button
+          type="button"
+          class="result-filter"
+          data-view="density"
+        >
+          DENSITY
+        </button>
+
+        <button
+          type="button"
+          class="result-filter"
+          data-view="lines"
+        >
+          LINES
+        </button>
+
+        <button
+          type="button"
+          class="result-filter"
+          data-view="mine"
+        >
+          YOUR LINE
+        </button>
 
       </div>
 
-    </section>
-
-  </main>
+    </div>
 
 
-  <footer>
+    <div class="result-map-wrap">
 
-    <span>
-      SYDNEY SPLIT
-    </span>
+      <div
+        id="resultMap"
+        aria-label="Sydney Split results map"
+      ></div>
 
-    <span>
-      NORTH SYDNEY TRANSPORT ASSOCIATION · 2026
-    </span>
+      <div class="legend">
 
-  </footer>
+        <span class="legend-line"></span>
+        <span>Your boundary</span>
+
+        <span class="legend-dot"></span>
+        <span>Other submissions</span>
+
+        <span class="legend-density"></span>
+        <span>Boundary overlap</span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<footer>
+
+  <span>
+    SYDNEY SPLIT
+  </span>
+
+  <span>
+    NORTH SYDNEY TRANSPORT ASSOCIATION · 2026
+  </span>
+
+</footer>
+
 
 <script
   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
