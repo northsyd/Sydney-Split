@@ -58,10 +58,7 @@ function initMap() {
   ).addTo(map);
 
 
-  map.on(
-    "click",
-    handleMapClick
-  );
+  map.on("click", handleMapClick);
 }
 
 
@@ -92,7 +89,6 @@ function handleMapClick(e) {
 
   pointMarkers.push(marker);
 
-
   redrawDrawing();
   updateControls();
 }
@@ -102,17 +98,12 @@ function redrawDrawing() {
 
   if (drawnLine) {
 
-    map.removeLayer(
-      drawnLine
-    );
-
+    map.removeLayer(drawnLine);
     drawnLine = null;
   }
 
 
-  if (
-    drawnPoints.length < 2
-  ) {
+  if (drawnPoints.length < 2) {
     return;
   }
 
@@ -167,7 +158,36 @@ function updateControls() {
 
 
 /* =====================================================
-   CLEAR / UNDO
+   UNDO
+===================================================== */
+
+function undoPoint() {
+
+  if (drawnPoints.length === 0) {
+    return;
+  }
+
+
+  drawnPoints.pop();
+
+
+  const marker =
+    pointMarkers.pop();
+
+
+  if (marker) {
+
+    map.removeLayer(marker);
+  }
+
+
+  redrawDrawing();
+  updateControls();
+}
+
+
+/* =====================================================
+   CLEAR
 ===================================================== */
 
 function clearDrawing() {
@@ -191,10 +211,7 @@ function clearDrawing() {
 
   if (drawnLine) {
 
-    map.removeLayer(
-      drawnLine
-    );
-
+    map.removeLayer(drawnLine);
     drawnLine = null;
   }
 
@@ -203,37 +220,8 @@ function clearDrawing() {
 }
 
 
-function undoPoint() {
-
-  if (
-    drawnPoints.length === 0
-  ) {
-    return;
-  }
-
-
-  drawnPoints.pop();
-
-
-  const marker =
-    pointMarkers.pop();
-
-
-  if (marker) {
-
-    map.removeLayer(
-      marker
-    );
-  }
-
-
-  redrawDrawing();
-  updateControls();
-}
-
-
 /* =====================================================
-   SECTIONS
+   DRAWING SECTION
 ===================================================== */
 
 function showDrawingSection() {
@@ -275,11 +263,13 @@ function showDrawingSection() {
 }
 
 
+/* =====================================================
+   DETAILS SECTION
+===================================================== */
+
 function showDetails() {
 
-  if (
-    drawnPoints.length < 2
-  ) {
+  if (drawnPoints.length < 2) {
     return;
   }
 
@@ -308,7 +298,7 @@ function showDetails() {
 
 
 /* =====================================================
-   LOAD SUPABASE RESPONSES
+   LOAD LIVE RESPONSES
 ===================================================== */
 
 async function loadLiveBoundaries() {
@@ -329,6 +319,8 @@ async function loadLiveBoundaries() {
       await fetch(
         endpoint,
         {
+          method: "GET",
+
           headers: {
             "apikey":
               SUPABASE_KEY,
@@ -357,7 +349,7 @@ async function loadLiveBoundaries() {
     if (!response.ok) {
 
       throw new Error(
-        text
+        `Supabase returned ${response.status}: ${text}`
       );
     }
 
@@ -525,7 +517,7 @@ function createDemographicFilters() {
 
 
 /* =====================================================
-   MAP VIEW
+   MAP VIEW CONTROLS
 ===================================================== */
 
 function createMapViewControls() {
@@ -584,9 +576,7 @@ function createMapViewControls() {
 
 
   container
-    .querySelectorAll(
-      ".result-filter"
-    )
+    .querySelectorAll(".result-filter")
     .forEach(button => {
 
       button.addEventListener(
@@ -598,16 +588,15 @@ function createMapViewControls() {
 
 
           container
-            .querySelectorAll(
-              ".result-filter"
-            )
-            .forEach(
-              other =>
-                other.classList.toggle(
-                  "active",
-                  other === button
-                )
-            );
+            .querySelectorAll(".result-filter")
+            .forEach(other => {
+
+              other.classList.toggle(
+                "active",
+                other === button
+              );
+
+            });
 
 
           updateResultVisibility();
@@ -619,7 +608,7 @@ function createMapViewControls() {
 
 
 /* =====================================================
-   FILTER
+   FILTER RESPONSES
 ===================================================== */
 
 function getFilteredSubmissions() {
@@ -655,15 +644,17 @@ function getFilteredSubmissions() {
 
 
 /* =====================================================
-   RESULT TITLE
+   RESULT COUNT
 ===================================================== */
 
-function updateResultTitle(
-  filtered
-) {
+function updateResultTitle(filtered) {
 
-  $("resultTitle")
-    .textContent =
+  if (!$("resultTitle")) {
+    return;
+  }
+
+
+  $("resultTitle").textContent =
     `${filtered.length} Sydney Split ${
       filtered.length === 1
         ? "response"
@@ -673,24 +664,30 @@ function updateResultTitle(
 
 
 /* =====================================================
-   REMOVE LAYERS
+   REMOVE RESULT LAYERS
 ===================================================== */
 
 function clearResultLayers() {
 
   responseLayers.forEach(
-    layer =>
-      resultMap.removeLayer(
-        layer
-      )
+    layer => {
+
+      if (resultMap.hasLayer(layer)) {
+        resultMap.removeLayer(layer);
+      }
+
+    }
   );
 
 
   densityLayers.forEach(
-    layer =>
-      resultMap.removeLayer(
-        layer
-      )
+    layer => {
+
+      if (resultMap.hasLayer(layer)) {
+        resultMap.removeLayer(layer);
+      }
+
+    }
   );
 
 
@@ -712,18 +709,37 @@ function buildResultLayers() {
     getFilteredSubmissions();
 
 
+  updateResultTitle(
+    filtered
+  );
+
+
+  /*
+    EVERY RESPONSE
+  */
+
   filtered.forEach(
     submission => {
 
       if (
         !Array.isArray(
           submission.boundary
-        ) ||
+        )
+      ) {
+        return;
+      }
+
+
+      if (
         submission.boundary.length < 2
       ) {
         return;
       }
 
+
+      /*
+        LINE
+      */
 
       const line =
         L.polyline(
@@ -731,7 +747,7 @@ function buildResultLayers() {
           {
             color: "#101114",
             weight: 2,
-            opacity: 0.22,
+            opacity: 0.20,
             lineCap: "round",
             lineJoin: "round"
           }
@@ -743,23 +759,31 @@ function buildResultLayers() {
       );
 
 
+      /*
+        DENSITY
+
+        Each point creates a faint circle.
+        Overlapping boundaries therefore
+        create a stronger visual area.
+      */
+
       submission.boundary.forEach(
         point => {
 
-          const circle =
+          const density =
             L.circle(
               point,
               {
-                radius: 850,
+                radius: 1000,
                 stroke: false,
                 fillColor: "#e83d24",
-                fillOpacity: 0.035
+                fillOpacity: 0.045
               }
             );
 
 
           densityLayers.push(
-            circle
+            density
           );
 
         }
@@ -767,33 +791,45 @@ function buildResultLayers() {
 
     }
   );
-
-
-  updateResultTitle(
-    filtered
-  );
 }
 
 
 /* =====================================================
-   YOUR BOUNDARY
+   CREATE YOUR BOUNDARY
 ===================================================== */
 
 function createMyLine() {
 
   if (myBoundaryLayer) {
 
-    resultMap.removeLayer(
-      myBoundaryLayer
-    );
+    if (
+      resultMap.hasLayer(
+        myBoundaryLayer
+      )
+    ) {
+
+      resultMap.removeLayer(
+        myBoundaryLayer
+      );
+    }
+
+    myBoundaryLayer = null;
   }
 
 
   myPointLayers.forEach(
-    layer =>
-      resultMap.removeLayer(
-        layer
-      )
+    layer => {
+
+      if (
+        resultMap.hasLayer(layer)
+      ) {
+
+        resultMap.removeLayer(
+          layer
+        );
+      }
+
+    }
   );
 
 
@@ -813,7 +849,9 @@ function createMyLine() {
       {
         color: "#e83d24",
         weight: 6,
-        opacity: 1
+        opacity: 1,
+        lineCap: "round",
+        lineJoin: "round"
       }
     );
 
@@ -821,7 +859,7 @@ function createMyLine() {
   drawnPoints.forEach(
     point => {
 
-      myPointLayers.push(
+      const marker =
         L.circleMarker(
           point,
           {
@@ -831,7 +869,11 @@ function createMyLine() {
             fillColor: "#ffffff",
             fillOpacity: 1
           }
-        )
+        );
+
+
+      myPointLayers.push(
+        marker
       );
 
     }
@@ -840,7 +882,7 @@ function createMyLine() {
 
 
 /* =====================================================
-   VISIBILITY
+   MAP VIEW
 ===================================================== */
 
 function updateResultVisibility() {
@@ -865,6 +907,10 @@ function updateResultVisibility() {
     currentView === "mine";
 
 
+  /*
+    OTHER BOUNDARIES
+  */
+
   responseLayers.forEach(
     layer => {
 
@@ -876,13 +922,23 @@ function updateResultVisibility() {
 
       } else {
 
-        resultMap.removeLayer(
-          layer
-        );
+        if (
+          resultMap.hasLayer(layer)
+        ) {
+
+          resultMap.removeLayer(
+            layer
+          );
+        }
       }
+
     }
   );
 
+
+  /*
+    DENSITY
+  */
 
   densityLayers.forEach(
     layer => {
@@ -895,13 +951,23 @@ function updateResultVisibility() {
 
       } else {
 
-        resultMap.removeLayer(
-          layer
-        );
+        if (
+          resultMap.hasLayer(layer)
+        ) {
+
+          resultMap.removeLayer(
+            layer
+          );
+        }
       }
+
     }
   );
 
+
+  /*
+    YOUR BOUNDARY
+  */
 
   if (myBoundaryLayer) {
 
@@ -913,9 +979,16 @@ function updateResultVisibility() {
 
     } else {
 
-      resultMap.removeLayer(
-        myBoundaryLayer
-      );
+      if (
+        resultMap.hasLayer(
+          myBoundaryLayer
+        )
+      ) {
+
+        resultMap.removeLayer(
+          myBoundaryLayer
+        );
+      }
     }
   }
 
@@ -931,10 +1004,16 @@ function updateResultVisibility() {
 
       } else {
 
-        resultMap.removeLayer(
-          layer
-        );
+        if (
+          resultMap.hasLayer(layer)
+        ) {
+
+          resultMap.removeLayer(
+            layer
+          );
+        }
       }
+
     }
   );
 }
@@ -976,6 +1055,10 @@ async function renderResults() {
   setTimeout(
     async () => {
 
+      /*
+        CREATE MAP
+      */
+
       if (!resultMap) {
 
         resultMap =
@@ -1008,9 +1091,17 @@ async function renderResults() {
       }
 
 
+      /*
+        LOAD RESPONSES
+      */
+
       submissions =
         await loadLiveBoundaries();
 
+
+      /*
+        RESET FILTERS
+      */
 
       currentArea =
         "all";
@@ -1022,14 +1113,32 @@ async function renderResults() {
         "all";
 
 
+      /*
+        CREATE FILTER UI
+      */
+
       createDemographicFilters();
 
       createMapViewControls();
 
+
+      /*
+        CREATE YOUR LINE
+      */
+
       createMyLine();
+
+
+      /*
+        DRAW EVERYTHING
+      */
 
       renderFilteredResults();
 
+
+      /*
+        SCROLL
+      */
 
       $("resultSection")
         .scrollIntoView({
@@ -1080,7 +1189,15 @@ async function submitBoundary() {
 
 
   const comment =
-    $("commentInput").value.trim();
+    $("commentInput")
+      .value
+      .trim();
+
+
+  console.log(
+    "Submitting to:",
+    endpoint
+  );
 
 
   try {
@@ -1143,7 +1260,7 @@ async function submitBoundary() {
     if (!response.ok) {
 
       throw new Error(
-        text
+        `Supabase returned ${response.status}: ${text}`
       );
     }
 
@@ -1161,13 +1278,13 @@ async function submitBoundary() {
   } catch (error) {
 
     console.error(
-      "Submission failed:",
+      "Supabase submission failed:",
       error
     );
 
 
     alert(
-      "Something went wrong submitting your response."
+      "Something went wrong submitting your response. Check the browser console."
     );
 
 
@@ -1181,7 +1298,7 @@ async function submitBoundary() {
 
 
 /* =====================================================
-   AGAIN
+   START AGAIN
 ===================================================== */
 
 function startAgain() {
