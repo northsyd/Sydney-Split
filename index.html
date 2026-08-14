@@ -8,7 +8,7 @@
 
   <meta
     name="description"
-    content="Where does Eastern Sydney end and Western Sydney begin? Draw where you think the boundary is."
+    content="Where does Eastern Sydney end and Western Sydney begin? Draw the line."
   >
 
   <link
@@ -30,7 +30,7 @@
   </a>
 
   <span class="project-label">
-    A NORTH SYDNEY TRANSPORT ASSOCIATION PROJECT
+    NORTH SYDNEY TRANSPORT ASSOCIATION PROJECT
   </span>
 
 </header>
@@ -45,7 +45,7 @@
     <div class="hero-copy">
 
       <p class="eyebrow">
-        SYDNEY SPLIT
+        AN EXPERIMENT IN SYDNEY GEOGRAPHY
       </p>
 
       <h1>
@@ -58,20 +58,26 @@
         We want to see where Sydneysiders draw the line.
       </p>
 
-      <button id="startBtn" class="primary-btn">
+      <button
+        id="startBtn"
+        class="primary-btn"
+      >
         DRAW YOUR BOUNDARY
         <span>→</span>
       </button>
 
     </div>
 
+
     <div class="hero-note">
 
-      <span class="note-number">01</span>
+      <span class="note-number">
+        01
+      </span>
 
       <p>
-        Draw a line from north to south showing where
-        you think Eastern Sydney ends.
+        Draw a line from north to south across Sydney.
+        There isn't a right answer.
       </p>
 
     </div>
@@ -79,9 +85,12 @@
   </section>
 
 
-  <!-- DRAWING -->
+  <!-- DRAW -->
 
-  <section id="drawSection" class="map-section hidden">
+  <section
+    id="drawSection"
+    class="map-section hidden"
+  >
 
     <div class="map-topbar">
 
@@ -96,15 +105,18 @@
         </h2>
 
         <p>
-          Click points from north to south. Draw the line wherever
-          you think Eastern Sydney becomes Western Sydney.
+          Click points from north to south.
+          Follow roads, rivers, suburbs — or your gut.
         </p>
 
       </div>
 
+
       <div class="counter">
 
-        <span id="pointCount">0</span>
+        <span id="pointCount">
+          0
+        </span>
 
         <small>
           POINTS
@@ -122,6 +134,7 @@
         aria-label="Interactive map of Sydney"
       ></div>
 
+
       <div class="map-instructions">
 
         <strong>
@@ -137,7 +150,7 @@
         </span>
 
         <span>
-          Work north → south.
+          Try to work north → south.
         </span>
 
       </div>
@@ -168,7 +181,7 @@
         class="primary-btn"
         disabled
       >
-        CONTINUE →
+        SUBMIT RESPONSE →
       </button>
 
     </div>
@@ -178,23 +191,20 @@
 
   <!-- DETAILS -->
 
-  <section id="detailsSection" class="details-section hidden">
+  <section
+    id="detailsSection"
+    class="details-section hidden"
+  >
 
     <div class="details-card">
 
       <p class="eyebrow">
-        OPTIONAL DETAILS
+        A LITTLE MORE ABOUT YOUR RESPONSE
       </p>
 
       <h2>
-        A little more about your response
+        These questions compare responses.
       </h2>
-
-      <p>
-        These questions help us compare responses.
-        You don't have to answer them.
-      </p>
-
 
       <div class="form-group">
 
@@ -240,7 +250,7 @@
       <div class="form-group">
 
         <label for="transportSelect">
-          MAIN WAY YOU GET AROUND SYDNEY
+          HOW DO YOU GET AROUND SYDNEY?
         </label>
 
         <select id="transportSelect">
@@ -289,23 +299,21 @@
       <div class="form-group">
 
         <label for="commentInput">
-          ANYTHING ELSE?
+          OPTIONAL
         </label>
 
         <textarea
           id="commentInput"
-          rows="3"
-          maxlength="500"
-          placeholder="Optional"
+          rows="4"
+          placeholder="ANYTHING ELSE?"
         ></textarea>
 
       </div>
 
 
-      <p class="privacy-note">
-        Your response is anonymous. We don't ask for your name,
-        email address or exact location.
-      </p>
+      <div class="privacy-note">
+        Don't include your name, email address or exact location.
+      </div>
 
 
       <div class="map-actions">
@@ -321,7 +329,7 @@
           id="finalSubmitBtn"
           class="primary-btn"
         >
-          SUBMIT RESPONSE →
+          SUBMIT RESPONSE
         </button>
 
       </div>
@@ -333,7 +341,10 @@
 
   <!-- RESULTS -->
 
-  <section id="resultSection" class="result-section hidden">
+  <section
+    id="resultSection"
+    class="result-section hidden"
+  >
 
     <div class="result-card">
 
@@ -350,57 +361,14 @@
         Other submissions are anonymous.
       </p>
 
-      <button
-        id="againBtn"
-        class="primary-btn"
-      >
-        DRAW ANOTHER →
-      </button>
-
     </div>
 
 
-    <div id="resultFilters">
+    <div class="results-controls">
 
-      <div class="result-filter-label">
-        MAP VIEW
-      </div>
+      <div id="demographicFilters"></div>
 
-      <div class="result-filter-buttons">
-
-        <button
-          type="button"
-          class="result-filter active"
-          data-view="all"
-        >
-          ALL
-        </button>
-
-        <button
-          type="button"
-          class="result-filter"
-          data-view="density"
-        >
-          DENSITY
-        </button>
-
-        <button
-          type="button"
-          class="result-filter"
-          data-view="lines"
-        >
-          LINES
-        </button>
-
-        <button
-          type="button"
-          class="result-filter"
-          data-view="mine"
-        >
-          YOUR LINE
-        </button>
-
-      </div>
+      <div id="resultFilters"></div>
 
     </div>
 
@@ -411,6 +379,7 @@
         id="resultMap"
         aria-label="Sydney Split results map"
       ></div>
+
 
       <div class="legend">
 
@@ -424,6 +393,18 @@
         <span>Boundary overlap</span>
 
       </div>
+
+    </div>
+
+
+    <div class="results-actions">
+
+      <button
+        id="againBtn"
+        class="primary-btn"
+      >
+        DRAW ANOTHER →
+      </button>
 
     </div>
 
@@ -448,10 +429,6 @@
 <script
   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
   crossorigin=""
-></script>
-
-<script
-  src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"
 ></script>
 
 <script src="script.js"></script>
