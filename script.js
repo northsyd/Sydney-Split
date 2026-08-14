@@ -432,17 +432,12 @@ async function renderResults() {
       UPDATE RESPONSE COUNT
     */
 
-    const resultTitle =
-      document.querySelector(".result-card h2");
-
-    if (resultTitle) {
-
-      resultTitle.textContent =
-        `${boundaries.length} Sydney Split ${
-          boundaries.length === 1
-            ? "response"
-            : "responses"
-        }`;
+$("resultTitle").textContent =
+  `${boundaries.length} Sydney Split ${
+    boundaries.length === 1
+      ? "response"
+      : "responses"
+  }`;
 
     }
 
