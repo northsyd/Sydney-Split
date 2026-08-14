@@ -777,7 +777,7 @@ function buildResultLayers() {
                 radius: 1400,
                 stroke: false,
                 fillColor: "#e83d24",
-                fillOpacity: 0.2
+                fillOpacity: 0.6
               }
             );
 
