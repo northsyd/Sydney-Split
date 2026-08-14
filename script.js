@@ -226,6 +226,58 @@ function undoPoint() {
   updateControls();
 }
 
+async function loadLiveBoundaries() {
+
+  const endpoint =
+    `${SUPABASE_URL}/rest/v1/responses?select=boundary`;
+
+  console.log("Loading live boundaries from:", endpoint);
+
+  try {
+
+    const response = await fetch(
+      endpoint,
+      {
+        method: "GET",
+
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Accept": "application/json"
+        }
+      }
+    );
+
+
+    const responseText = await response.text();
+
+    console.log(
+      "Live results response:",
+      response.status,
+      responseText
+    );
+
+
+    if (!response.ok) {
+      throw new Error(
+        `Supabase returned ${response.status}: ${responseText}`
+      );
+    }
+
+
+    return JSON.parse(responseText);
+
+  } catch (error) {
+
+    console.error(
+      "Could not load live boundaries:",
+      error
+    );
+
+    return [];
+
+  }
+}
 
 /* -------------------------
    SHOW DRAWING SECTION
@@ -256,18 +308,20 @@ function showDrawingSection() {
 }
 
 
+
+
 /* -------------------------
    RESULTS MAP
 ------------------------- */
 
-function renderResults() {
+async function renderResults() {
 
   $("drawSection").classList.add("hidden");
 
   $("resultSection").classList.remove("hidden");
 
 
-  setTimeout(() => {
+  setTimeout(async () => {
 
     if (!resultMap) {
 
@@ -289,29 +343,6 @@ function renderResults() {
         }
       ).addTo(resultMap);
 
-
-      /*
-        SAMPLE BOUNDARIES
-
-        These are just placeholders so we can
-        see what the final visualiser might look like.
-      */
-
-      sampleBoundaries.forEach((points) => {
-
-        L.polyline(
-          points,
-          {
-            color: "#101114",
-            weight: 3,
-            opacity: 0.22,
-            lineCap: "round",
-            lineJoin: "round"
-          }
-        ).addTo(resultMap);
-
-      });
-
     } else {
 
       resultMap.invalidateSize();
@@ -320,45 +351,107 @@ function renderResults() {
 
 
     /*
-      YOUR BOUNDARY
+      LOAD REAL SUBMISSIONS
     */
 
-    L.polyline(
-      drawnPoints,
-      {
-        color: "#e83d24",
-        weight: 6,
-        opacity: 1,
-        lineCap: "round",
-        lineJoin: "round"
-      }
-    ).addTo(resultMap);
+    const boundaries =
+      await loadLiveBoundaries();
+
+
+    console.log(
+      "Boundaries loaded:",
+      boundaries.length
+    );
 
 
     /*
-      YOUR POINTS
+      DRAW ALL SUBMISSIONS
     */
 
-    drawnPoints.forEach((point) => {
+    boundaries.forEach((submission) => {
 
-      L.circleMarker(
-        point,
+      if (
+        !submission.boundary ||
+        submission.boundary.length < 2
+      ) {
+        return;
+      }
+
+
+      L.polyline(
+        submission.boundary,
         {
-          radius: 4,
-          weight: 1,
-          color: "#e83d24",
-          fillColor: "#ffffff",
-          fillOpacity: 1
+          color: "#101114",
+          weight: 2,
+          opacity: 0.16,
+          lineCap: "round",
+          lineJoin: "round"
         }
       ).addTo(resultMap);
 
     });
 
 
+    /*
+      HIGHLIGHT CURRENT USER'S BOUNDARY
+    */
+
+    if (drawnPoints.length >= 2) {
+
+      L.polyline(
+        drawnPoints,
+        {
+          color: "#e83d24",
+          weight: 6,
+          opacity: 1,
+          lineCap: "round",
+          lineJoin: "round"
+        }
+      ).addTo(resultMap);
+
+
+      drawnPoints.forEach((point) => {
+
+        L.circleMarker(
+          point,
+          {
+            radius: 4,
+            weight: 1,
+            color: "#e83d24",
+            fillColor: "#ffffff",
+            fillOpacity: 1
+          }
+        ).addTo(resultMap);
+
+      });
+
+    }
+
+
+    /*
+      UPDATE RESPONSE COUNT
+    */
+
+    const resultTitle =
+      document.querySelector(".result-card h2");
+
+    if (resultTitle) {
+
+      resultTitle.textContent =
+        `${boundaries.length} Sydney Split ${
+          boundaries.length === 1
+            ? "response"
+            : "responses"
+        }`;
+
+    }
+
+
     $("resultSection").scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
+
 
   }, 50);
 }
