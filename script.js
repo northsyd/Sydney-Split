@@ -439,7 +439,18 @@ $("resultTitle").textContent =
       : "responses"
   }`;
 
-    }
+
+/*
+  SCROLL TO RESULTS
+*/
+
+$("resultSection").scrollIntoView({
+  behavior: "smooth",
+  block: "start"
+});
+
+}, 50);
+}
 
 
     $("resultSection").scrollIntoView({
