@@ -363,6 +363,73 @@ function renderResults() {
   }, 50);
 }
 
+async function submitBoundary() {
+
+  if (drawnPoints.length < 2) {
+    return;
+  }
+
+  const submitButton = $("submitBtn");
+
+  submitButton.disabled = true;
+  submitButton.textContent = "SUBMITTING…";
+
+
+  try {
+
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/responses`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Prefer": "return=minimal"
+        },
+
+        body: JSON.stringify({
+          boundary: drawnPoints
+        })
+      }
+    );
+
+
+    if (!response.ok) {
+
+      const errorText = await response.text();
+
+      console.error(
+        "Supabase submission failed:",
+        errorText
+      );
+
+      throw new Error(
+        "Submission failed"
+      );
+    }
+
+
+    submitButton.textContent = "SUBMITTED ✓";
+
+    setTimeout(() => {
+      renderResults();
+    }, 500);
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Something went wrong submitting your boundary. Please try again."
+    );
+
+    submitButton.disabled = false;
+    submitButton.textContent = "SUBMIT BOUNDARY →";
+  }
+}
 
 /* -------------------------
    BUTTONS
@@ -388,15 +455,8 @@ $("clearBtn").addEventListener(
 
 $("submitBtn").addEventListener(
   "click",
-  () => {
-
-    if (drawnPoints.length >= 2) {
-      renderResults();
-    }
-
-  }
+  submitBoundary
 );
-
 
 $("againBtn").addEventListener(
   "click",
