@@ -35,9 +35,9 @@ const $ = (id) =>
   document.getElementById(id);
 
 
-/* =========================================================
+/* =====================================================
    DRAWING MAP
-========================================================= */
+===================================================== */
 
 function initMap() {
 
@@ -65,21 +65,21 @@ function initMap() {
 }
 
 
-/* =========================================================
+/* =====================================================
    DRAWING
-========================================================= */
+===================================================== */
 
-function handleMapClick(event) {
+function handleMapClick(e) {
 
   drawnPoints.push([
-    event.latlng.lat,
-    event.latlng.lng
+    e.latlng.lat,
+    e.latlng.lng
   ]);
 
 
   const marker =
     L.circleMarker(
-      event.latlng,
+      e.latlng,
       {
         radius: 5,
         weight: 2,
@@ -110,7 +110,9 @@ function redrawDrawing() {
   }
 
 
-  if (drawnPoints.length < 2) {
+  if (
+    drawnPoints.length < 2
+  ) {
     return;
   }
 
@@ -129,16 +131,15 @@ function redrawDrawing() {
 }
 
 
-/* =========================================================
+/* =====================================================
    CONTROLS
-========================================================= */
+===================================================== */
 
 function updateControls() {
 
   if ($("pointCount")) {
 
-    $("pointCount")
-      .textContent =
+    $("pointCount").textContent =
       drawnPoints.length;
   }
 
@@ -165,9 +166,42 @@ function updateControls() {
 }
 
 
-/* =========================================================
-   UNDO
-========================================================= */
+/* =====================================================
+   CLEAR / UNDO
+===================================================== */
+
+function clearDrawing() {
+
+  drawnPoints = [];
+
+
+  pointMarkers.forEach(
+    marker => {
+
+      if (map) {
+        map.removeLayer(marker);
+      }
+
+    }
+  );
+
+
+  pointMarkers = [];
+
+
+  if (drawnLine) {
+
+    map.removeLayer(
+      drawnLine
+    );
+
+    drawnLine = null;
+  }
+
+
+  updateControls();
+}
+
 
 function undoPoint() {
 
@@ -198,74 +232,25 @@ function undoPoint() {
 }
 
 
-/* =========================================================
-   CLEAR
-========================================================= */
-
-function clearDrawing() {
-
-  drawnPoints = [];
-
-
-  pointMarkers.forEach(
-    (marker) => {
-
-      if (map) {
-
-        map.removeLayer(
-          marker
-        );
-      }
-
-    }
-  );
-
-
-  pointMarkers = [];
-
-
-  if (drawnLine) {
-
-    map.removeLayer(
-      drawnLine
-    );
-
-    drawnLine = null;
-  }
-
-
-  updateControls();
-}
-
-
-/* =========================================================
-   DRAWING SECTION
-========================================================= */
+/* =====================================================
+   SECTIONS
+===================================================== */
 
 function showDrawingSection() {
 
-  if ($("drawSection")) {
-
-    $("drawSection")
-      .classList
-      .remove("hidden");
-  }
+  $("drawSection")
+    .classList
+    .remove("hidden");
 
 
-  if ($("resultSection")) {
-
-    $("resultSection")
-      .classList
-      .add("hidden");
-  }
+  $("detailsSection")
+    .classList
+    .add("hidden");
 
 
-  if ($("detailsSection")) {
-
-    $("detailsSection")
-      .classList
-      .add("hidden");
-  }
+  $("resultSection")
+    .classList
+    .add("hidden");
 
 
   setTimeout(() => {
@@ -280,22 +265,15 @@ function showDrawingSection() {
     }
 
 
-    if ($("drawSection")) {
-
-      $("drawSection")
-        .scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-    }
+    $("drawSection")
+      .scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
 
   }, 100);
 }
 
-
-/* =========================================================
-   OPTIONAL DETAILS SECTION
-========================================================= */
 
 function showDetails() {
 
@@ -306,21 +284,9 @@ function showDetails() {
   }
 
 
-  if (
-    !$("detailsSection")
-  ) {
-
-    submitBoundary();
-    return;
-  }
-
-
-  if ($("drawSection")) {
-
-    $("drawSection")
-      .classList
-      .add("hidden");
-  }
+  $("drawSection")
+    .classList
+    .add("hidden");
 
 
   $("detailsSection")
@@ -328,12 +294,9 @@ function showDetails() {
     .remove("hidden");
 
 
-  if ($("resultSection")) {
-
-    $("resultSection")
-      .classList
-      .add("hidden");
-  }
+  $("resultSection")
+    .classList
+    .add("hidden");
 
 
   $("detailsSection")
@@ -344,9 +307,9 @@ function showDetails() {
 }
 
 
-/* =========================================================
-   SUPABASE — LOAD
-========================================================= */
+/* =====================================================
+   LOAD SUPABASE RESPONSES
+===================================================== */
 
 async function loadLiveBoundaries() {
 
@@ -366,10 +329,7 @@ async function loadLiveBoundaries() {
       await fetch(
         endpoint,
         {
-          method: "GET",
-
           headers: {
-
             "apikey":
               SUPABASE_KEY,
 
@@ -383,29 +343,26 @@ async function loadLiveBoundaries() {
       );
 
 
-    const responseText =
+    const text =
       await response.text();
 
 
     console.log(
       "Results response:",
       response.status,
-      responseText
+      text
     );
 
 
     if (!response.ok) {
 
       throw new Error(
-        `Supabase returned ${response.status}: ${responseText}`
+        text
       );
     }
 
 
-    return JSON.parse(
-      responseText
-    );
-
+    return JSON.parse(text);
 
   } catch (error) {
 
@@ -420,41 +377,22 @@ async function loadLiveBoundaries() {
 }
 
 
-/* =========================================================
+/* =====================================================
    DEMOGRAPHIC FILTERS
-========================================================= */
+===================================================== */
 
 function createDemographicFilters() {
 
-  if (
-    $("demographicFilters")
-  ) {
+  const container =
+    $("demographicFilters");
+
+
+  if (!container) {
     return;
   }
 
 
-  const resultsMapWrap =
-    document.querySelector(
-      ".result-map-wrap"
-    );
-
-
-  if (!resultsMapWrap) {
-    return;
-  }
-
-
-  const filterBox =
-    document.createElement(
-      "div"
-    );
-
-
-  filterBox.id =
-    "demographicFilters";
-
-
-  filterBox.innerHTML = `
+  container.innerHTML = `
 
     <div class="demographic-filter-heading">
       FILTER RESPONSES
@@ -559,19 +497,13 @@ function createDemographicFilters() {
   `;
 
 
-  resultsMapWrap.parentNode.insertBefore(
-    filterBox,
-    resultsMapWrap
-  );
-
-
   $("areaFilter")
     .addEventListener(
       "change",
-      (event) => {
+      e => {
 
         currentArea =
-          event.target.value;
+          e.target.value;
 
         renderFilteredResults();
       }
@@ -581,10 +513,10 @@ function createDemographicFilters() {
   $("transportFilter")
     .addEventListener(
       "change",
-      (event) => {
+      e => {
 
         currentTransport =
-          event.target.value;
+          e.target.value;
 
         renderFilteredResults();
       }
@@ -592,41 +524,22 @@ function createDemographicFilters() {
 }
 
 
-/* =========================================================
-   MAP VIEW BUTTONS
-========================================================= */
+/* =====================================================
+   MAP VIEW
+===================================================== */
 
 function createMapViewControls() {
 
-  if (
-    $("resultFilters")
-  ) {
+  const container =
+    $("resultFilters");
+
+
+  if (!container) {
     return;
   }
 
 
-  const resultsMapWrap =
-    document.querySelector(
-      ".result-map-wrap"
-    );
-
-
-  if (!resultsMapWrap) {
-    return;
-  }
-
-
-  const box =
-    document.createElement(
-      "div"
-    );
-
-
-  box.id =
-    "resultFilters";
-
-
-  box.innerHTML = `
+  container.innerHTML = `
 
     <div class="result-filter-label">
       MAP VIEW
@@ -635,33 +548,33 @@ function createMapViewControls() {
     <div class="result-filter-buttons">
 
       <button
+        type="button"
         class="result-filter active"
         data-view="all"
-        type="button"
       >
         ALL
       </button>
 
       <button
+        type="button"
         class="result-filter"
         data-view="density"
-        type="button"
       >
         DENSITY
       </button>
 
       <button
+        type="button"
         class="result-filter"
         data-view="lines"
-        type="button"
       >
         LINES
       </button>
 
       <button
+        type="button"
         class="result-filter"
         data-view="mine"
-        type="button"
       >
         YOUR LINE
       </button>
@@ -670,69 +583,56 @@ function createMapViewControls() {
   `;
 
 
-  resultsMapWrap.parentNode.insertBefore(
-    box,
-    resultsMapWrap
-  );
-
-
-  document
+  container
     .querySelectorAll(
       ".result-filter"
     )
-    .forEach(
-      (button) => {
+    .forEach(button => {
 
-        button.addEventListener(
-          "click",
-          () => {
+      button.addEventListener(
+        "click",
+        () => {
 
-            currentView =
-              button.dataset.view;
-
-
-            document
-              .querySelectorAll(
-                ".result-filter"
-              )
-              .forEach(
-                (other) => {
-
-                  other.classList.toggle(
-                    "active",
-                    other === button
-                  );
-
-                }
-              );
+          currentView =
+            button.dataset.view;
 
 
-            updateResultVisibility();
-          }
-        );
+          container
+            .querySelectorAll(
+              ".result-filter"
+            )
+            .forEach(
+              other =>
+                other.classList.toggle(
+                  "active",
+                  other === button
+                )
+            );
 
-      }
-    );
+
+          updateResultVisibility();
+        }
+      );
+
+    });
 }
 
 
-/* =========================================================
-   FILTER DATA
-========================================================= */
+/* =====================================================
+   FILTER
+===================================================== */
 
 function getFilteredSubmissions() {
 
   return submissions.filter(
-    (submission) => {
+    submission => {
 
       const area =
-        submission.area ||
-        "";
+        submission.area || "";
 
 
       const transport =
-        submission.transport ||
-        "";
+        submission.transport || "";
 
 
       const areaMatches =
@@ -754,77 +654,58 @@ function getFilteredSubmissions() {
 }
 
 
-/* =========================================================
+/* =====================================================
    RESULT TITLE
-========================================================= */
+===================================================== */
 
 function updateResultTitle(
   filtered
 ) {
 
-  if (!$("resultTitle")) {
-    return;
-  }
-
-
-  let title =
-    `${filtered.length} Sydney Split `;
-
-
-  title +=
-    filtered.length === 1
-      ? "response"
-      : "responses";
-
-
   $("resultTitle")
     .textContent =
-    title;
+    `${filtered.length} Sydney Split ${
+      filtered.length === 1
+        ? "response"
+        : "responses"
+    }`;
 }
 
 
-/* =========================================================
-   REMOVE RESULT LAYERS
-========================================================= */
+/* =====================================================
+   REMOVE LAYERS
+===================================================== */
 
-function removeResultLayers() {
+function clearResultLayers() {
 
   responseLayers.forEach(
-    (layer) => {
-
+    layer =>
       resultMap.removeLayer(
         layer
-      );
+      )
+  );
 
-    }
+
+  densityLayers.forEach(
+    layer =>
+      resultMap.removeLayer(
+        layer
+      )
   );
 
 
   responseLayers = [];
-
-
-  densityLayers.forEach(
-    (layer) => {
-
-      resultMap.removeLayer(
-        layer
-      );
-
-    }
-  );
-
-
   densityLayers = [];
 }
 
 
-/* =========================================================
+/* =====================================================
    BUILD RESULT LAYERS
-========================================================= */
+===================================================== */
 
 function buildResultLayers() {
 
-  removeResultLayers();
+  clearResultLayers();
 
 
   const filtered =
@@ -832,27 +713,17 @@ function buildResultLayers() {
 
 
   filtered.forEach(
-    (submission) => {
+    submission => {
 
       if (
         !Array.isArray(
           submission.boundary
-        )
-      ) {
-        return;
-      }
-
-
-      if (
+        ) ||
         submission.boundary.length < 2
       ) {
         return;
       }
 
-
-      /*
-        NORMAL LINE
-      */
 
       const line =
         L.polyline(
@@ -872,22 +743,14 @@ function buildResultLayers() {
       );
 
 
-      /*
-        SIMPLE DENSITY VISUALISATION
-
-        Instead of needing another plugin,
-        we draw faint circles at every
-        submitted point.
-      */
-
       submission.boundary.forEach(
-        (point) => {
+        point => {
 
           const circle =
             L.circle(
               point,
               {
-                radius: 900,
+                radius: 850,
                 stroke: false,
                 fillColor: "#e83d24",
                 fillOpacity: 0.035
@@ -912,9 +775,73 @@ function buildResultLayers() {
 }
 
 
-/* =========================================================
-   SHOW / HIDE MAP LAYERS
-========================================================= */
+/* =====================================================
+   YOUR BOUNDARY
+===================================================== */
+
+function createMyLine() {
+
+  if (myBoundaryLayer) {
+
+    resultMap.removeLayer(
+      myBoundaryLayer
+    );
+  }
+
+
+  myPointLayers.forEach(
+    layer =>
+      resultMap.removeLayer(
+        layer
+      )
+  );
+
+
+  myPointLayers = [];
+
+
+  if (
+    drawnPoints.length < 2
+  ) {
+    return;
+  }
+
+
+  myBoundaryLayer =
+    L.polyline(
+      drawnPoints,
+      {
+        color: "#e83d24",
+        weight: 6,
+        opacity: 1
+      }
+    );
+
+
+  drawnPoints.forEach(
+    point => {
+
+      myPointLayers.push(
+        L.circleMarker(
+          point,
+          {
+            radius: 4,
+            weight: 1,
+            color: "#e83d24",
+            fillColor: "#ffffff",
+            fillOpacity: 1
+          }
+        )
+      );
+
+    }
+  );
+}
+
+
+/* =====================================================
+   VISIBILITY
+===================================================== */
 
 function updateResultVisibility() {
 
@@ -938,12 +865,8 @@ function updateResultVisibility() {
     currentView === "mine";
 
 
-  /*
-    OTHER RESPONSE LINES
-  */
-
   responseLayers.forEach(
-    (layer) => {
+    layer => {
 
       if (showLines) {
 
@@ -956,19 +879,13 @@ function updateResultVisibility() {
         resultMap.removeLayer(
           layer
         );
-
       }
-
     }
   );
 
 
-  /*
-    DENSITY
-  */
-
   densityLayers.forEach(
-    (layer) => {
+    layer => {
 
       if (showDensity) {
 
@@ -981,16 +898,10 @@ function updateResultVisibility() {
         resultMap.removeLayer(
           layer
         );
-
       }
-
     }
   );
 
-
-  /*
-    YOUR LINE
-  */
 
   if (myBoundaryLayer) {
 
@@ -1005,13 +916,12 @@ function updateResultVisibility() {
       resultMap.removeLayer(
         myBoundaryLayer
       );
-
     }
   }
 
 
   myPointLayers.forEach(
-    (layer) => {
+    layer => {
 
       if (showMine) {
 
@@ -1024,147 +934,47 @@ function updateResultVisibility() {
         resultMap.removeLayer(
           layer
         );
-
       }
-
     }
   );
 }
 
 
-/* =========================================================
-   RENDER FILTERED RESULTS
-========================================================= */
+/* =====================================================
+   FILTERED RESULTS
+===================================================== */
 
 function renderFilteredResults() {
 
-  if (!resultMap) {
-    return;
-  }
-
-
   buildResultLayers();
-
 
   updateResultVisibility();
 }
 
 
-/* =========================================================
-   CREATE YOUR LINE
-========================================================= */
-
-function createMyLine() {
-
-  /*
-    Remove old version
-  */
-
-  if (myBoundaryLayer) {
-
-    resultMap.removeLayer(
-      myBoundaryLayer
-    );
-
-    myBoundaryLayer = null;
-  }
-
-
-  myPointLayers.forEach(
-    (layer) => {
-
-      resultMap.removeLayer(
-        layer
-      );
-
-    }
-  );
-
-
-  myPointLayers = [];
-
-
-  if (
-    drawnPoints.length < 2
-  ) {
-    return;
-  }
-
-
-  myBoundaryLayer =
-    L.polyline(
-      drawnPoints,
-      {
-        color: "#e83d24",
-        weight: 6,
-        opacity: 1,
-        lineCap: "round",
-        lineJoin: "round"
-      }
-    );
-
-
-  drawnPoints.forEach(
-    (point) => {
-
-      const marker =
-        L.circleMarker(
-          point,
-          {
-            radius: 4,
-            weight: 1,
-            color: "#e83d24",
-            fillColor: "#ffffff",
-            fillOpacity: 1
-          }
-        );
-
-
-      myPointLayers.push(
-        marker
-      );
-
-    }
-  );
-}
-
-
-/* =========================================================
+/* =====================================================
    RESULTS PAGE
-========================================================= */
+===================================================== */
 
 async function renderResults() {
 
-  if ($("drawSection")) {
-
-    $("drawSection")
-      .classList
-      .add("hidden");
-  }
+  $("drawSection")
+    .classList
+    .add("hidden");
 
 
-  if ($("detailsSection")) {
-
-    $("detailsSection")
-      .classList
-      .add("hidden");
-  }
+  $("detailsSection")
+    .classList
+    .add("hidden");
 
 
-  if ($("resultSection")) {
-
-    $("resultSection")
-      .classList
-      .remove("hidden");
-  }
+  $("resultSection")
+    .classList
+    .remove("hidden");
 
 
   setTimeout(
     async () => {
-
-      /*
-        CREATE RESULT MAP
-      */
 
       if (!resultMap) {
 
@@ -1198,26 +1008,9 @@ async function renderResults() {
       }
 
 
-      /*
-        LOAD DATA
-      */
-
       submissions =
         await loadLiveBoundaries();
 
-
-      /*
-        FILTER CONTROLS
-      */
-
-      createDemographicFilters();
-
-      createMapViewControls();
-
-
-      /*
-        RESET FILTERS
-      */
 
       currentArea =
         "all";
@@ -1229,63 +1022,20 @@ async function renderResults() {
         "all";
 
 
-      if ($("areaFilter")) {
+      createDemographicFilters();
 
-        $("areaFilter").value =
-          "all";
-      }
-
-
-      if ($("transportFilter")) {
-
-        $("transportFilter").value =
-          "all";
-      }
-
-
-      document
-        .querySelectorAll(
-          ".result-filter"
-        )
-        .forEach(
-          (button) => {
-
-            button.classList.toggle(
-              "active",
-              button.dataset.view ===
-                "all"
-            );
-
-          }
-        );
-
-
-      /*
-        CREATE USER LINE
-      */
+      createMapViewControls();
 
       createMyLine();
-
-
-      /*
-        DRAW RESULTS
-      */
 
       renderFilteredResults();
 
 
-      /*
-        SCROLL
-      */
-
-      if ($("resultSection")) {
-
-        $("resultSection")
-          .scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-      }
+      $("resultSection")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
 
     },
     100
@@ -1293,9 +1043,9 @@ async function renderResults() {
 }
 
 
-/* =========================================================
+/* =====================================================
    SUBMIT
-========================================================= */
+===================================================== */
 
 async function submitBoundary() {
 
@@ -1306,63 +1056,31 @@ async function submitBoundary() {
   }
 
 
-  const submitButton =
-    $("finalSubmitBtn") ||
-    $("submitBtn");
+  const button =
+    $("finalSubmitBtn");
 
 
-  if (submitButton) {
+  button.disabled =
+    true;
 
-    submitButton.disabled =
-      true;
-
-    submitButton.textContent =
-      "SUBMITTING…";
-  }
+  button.textContent =
+    "SUBMITTING…";
 
 
   const endpoint =
     `${SUPABASE_URL}/rest/v1/responses`;
 
 
-  /*
-    Optional demographic info
-  */
-
-  const areaElement =
-    $("areaSelect");
-
-
-  const transportElement =
-    $("transportSelect");
-
-
-  const commentElement =
-    $("commentInput");
-
-
   const area =
-    areaElement
-      ? areaElement.value
-      : null;
+    $("areaSelect").value;
 
 
   const transport =
-    transportElement
-      ? transportElement.value
-      : null;
+    $("transportSelect").value;
 
 
   const comment =
-    commentElement
-      ? commentElement.value.trim()
-      : null;
-
-
-  console.log(
-    "Submitting to:",
-    endpoint
-  );
+    $("commentInput").value.trim();
 
 
   try {
@@ -1393,6 +1111,7 @@ async function submitBoundary() {
 
           body:
             JSON.stringify({
+
               boundary:
                 drawnPoints,
 
@@ -1404,35 +1123,33 @@ async function submitBoundary() {
 
               comment:
                 comment || null
+
             })
         }
       );
 
 
-    const responseText =
+    const text =
       await response.text();
 
 
     console.log(
       "Supabase response:",
       response.status,
-      responseText
+      text
     );
 
 
     if (!response.ok) {
 
       throw new Error(
-        `Supabase returned ${response.status}: ${responseText}`
+        text
       );
     }
 
 
-    if (submitButton) {
-
-      submitButton.textContent =
-        "SUBMITTED ✓";
-    }
+    button.textContent =
+      "SUBMITTED ✓";
 
 
     setTimeout(
@@ -1444,146 +1161,99 @@ async function submitBoundary() {
   } catch (error) {
 
     console.error(
-      "Supabase submission failed:",
+      "Submission failed:",
       error
     );
 
 
     alert(
-      "Something went wrong submitting your response. Check the browser console for details."
+      "Something went wrong submitting your response."
     );
 
 
-    if (submitButton) {
+    button.disabled =
+      false;
 
-      submitButton.disabled =
-        false;
-
-      submitButton.textContent =
-        "SUBMIT RESPONSE →";
-    }
+    button.textContent =
+      "SUBMIT RESPONSE";
   }
 }
 
 
-/* =========================================================
+/* =====================================================
    AGAIN
-========================================================= */
+===================================================== */
 
 function startAgain() {
 
   clearDrawing();
 
 
-  if ($("areaSelect")) {
+  $("areaSelect").value =
+    "";
 
-    $("areaSelect").value =
-      "";
-  }
+  $("transportSelect").value =
+    "";
 
-
-  if ($("transportSelect")) {
-
-    $("transportSelect").value =
-      "";
-  }
-
-
-  if ($("commentInput")) {
-
-    $("commentInput").value =
-      "";
-  }
-
-
-  if ($("resultSection")) {
-
-    $("resultSection")
-      .classList
-      .add("hidden");
-  }
+  $("commentInput").value =
+    "";
 
 
   showDrawingSection();
 }
 
 
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
+/* =====================================================
+   BUTTONS
+===================================================== */
 
-if ($("startBtn")) {
-
-  $("startBtn")
-    .addEventListener(
-      "click",
-      showDrawingSection
-    );
-}
+$("startBtn")
+  .addEventListener(
+    "click",
+    showDrawingSection
+  );
 
 
-if ($("undoBtn")) {
-
-  $("undoBtn")
-    .addEventListener(
-      "click",
-      undoPoint
-    );
-}
+$("undoBtn")
+  .addEventListener(
+    "click",
+    undoPoint
+  );
 
 
-if ($("clearBtn")) {
-
-  $("clearBtn")
-    .addEventListener(
-      "click",
-      clearDrawing
-    );
-}
+$("clearBtn")
+  .addEventListener(
+    "click",
+    clearDrawing
+  );
 
 
-if ($("submitBtn")) {
-
-  $("submitBtn")
-    .addEventListener(
-      "click",
-      showDetails
-    );
-}
+$("submitBtn")
+  .addEventListener(
+    "click",
+    showDetails
+  );
 
 
-if ($("finalSubmitBtn")) {
-
-  $("finalSubmitBtn")
-    .addEventListener(
-      "click",
-      submitBoundary
-    );
-}
+$("backBtn")
+  .addEventListener(
+    "click",
+    showDrawingSection
+  );
 
 
-if ($("againBtn")) {
-
-  $("againBtn")
-    .addEventListener(
-      "click",
-      startAgain
-    );
-}
+$("finalSubmitBtn")
+  .addEventListener(
+    "click",
+    submitBoundary
+  );
 
 
-if ($("backBtn")) {
+$("againBtn")
+  .addEventListener(
+    "click",
+    startAgain
+  );
 
-  $("backBtn")
-    .addEventListener(
-      "click",
-      showDrawingSection
-    );
-}
-
-
-/* =========================================================
-   INITIALISE
-========================================================= */
 
 updateControls();
