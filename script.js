@@ -747,7 +747,7 @@ function buildResultLayers() {
           {
             color: "#101114",
             weight: 2,
-            opacity: 0.4,
+            opacity: 0.1,
             lineCap: "round",
             lineJoin: "round"
           }
@@ -777,7 +777,7 @@ function buildResultLayers() {
                 radius: 1000,
                 stroke: false,
                 fillColor: "#e83d24",
-                fillOpacity: 0.3
+                fillOpacity: 0.1
               }
             );
 
